@@ -5568,6 +5568,311 @@ cat runs/*/62-magic-drc/*.rpt</pre>
       </table>
     </div>
 
+    <!-- OPENROAD INTERACTIVE -->
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3 style="color:var(--green);">9. OpenROAD — Sử dụng trực tiếp (Interactive Mode)</h3>
+      <p style="color:var(--muted); margin-bottom:12px;">Trong OpenLane, OpenROAD chạy ngầm. Tuy nhiên, bạn có thể <strong>mở OpenROAD trực tiếp</strong> để khám phá, debug, hoặc can thiệp thủ công vào design. OpenROAD sử dụng <strong>Tcl shell</strong> (giống Synopsys ICC2, Cadence Innovus).</p>
+
+      <h4 style="color:var(--accent); margin:12px 0 8px;">Khởi động OpenROAD</h4>
+      <pre>
+<span class="cmt"># Cách 1: Mở OpenROAD CLI trong Docker container của OpenLane</span>
+docker run -it -v $(pwd):/work -w /work \
+  efabless/openlane:2.3.10 openroad
+
+<span class="cmt"># Cách 2: Mở với GUI (cần X11 forwarding)</span>
+docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v $(pwd):/work -w /work \
+  efabless/openlane:2.3.10 openroad -gui
+
+<span class="cmt"># Cách 3: Nếu đã cài OpenROAD standalone</span>
+openroad          <span class="cmt"># CLI mode</span>
+openroad -gui     <span class="cmt"># GUI mode</span></pre>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Các lệnh Tcl cơ bản</h4>
+      <table>
+        <tr><th style="width:15%">Nhóm</th><th style="width:38%">Lệnh Tcl</th><th>Mô tả</th></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="3" style="color:var(--accent); font-weight:700; font-size:0.9em;">Đọc design vào OpenROAD</td>
+        </tr>
+        <tr><td>Library</td><td><code>read_liberty sky130.lib</code></td><td>Đọc thư viện timing (.lib) của standard cells</td></tr>
+        <tr><td>LEF</td><td><code>read_lef sky130_fd_sc_hd.tlef</code><br><code>read_lef sky130_fd_sc_hd.lef</code></td><td>Đọc tech LEF (layer rules) và cell LEF (geometry)</td></tr>
+        <tr><td>Netlist</td><td><code>read_verilog counter.nl.v</code><br><code>link_design counter</code></td><td>Đọc gate-level netlist từ synthesis và link top module</td></tr>
+        <tr><td>SDC</td><td><code>read_sdc counter.sdc</code></td><td>Đọc timing constraints (clock, I/O delay)</td></tr>
+        <tr><td>DEF</td><td><code>read_def counter.def</code></td><td>Đọc file DEF (đã có placement/routing) để tiếp tục xử lý</td></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="3" style="color:var(--accent); font-weight:700; font-size:0.9em;">Floorplan &amp; Placement</td>
+        </tr>
+        <tr><td>Floorplan</td><td><code>initialize_floorplan -die_area "0 0 200 200" \<br>&nbsp;&nbsp;-core_area "10 10 190 190" -site unithd</code></td><td>Tạo floorplan với kích thước die và core area</td></tr>
+        <tr><td>IO Pins</td><td><code>place_pins -hor_layers met3 -ver_layers met2</code></td><td>Tự động đặt IO pins trên các cạnh die</td></tr>
+        <tr><td>PDN</td><td><code>pdngen pdn.cfg</code></td><td>Tạo lưới nguồn VDD/VSS từ file config</td></tr>
+        <tr><td>Placement</td><td><code>global_placement -density 0.6</code><br><code>detailed_placement</code></td><td>Đặt cells: global (thô) → detailed (chính xác trên row sites)</td></tr>
+        <tr><td>Resize</td><td><code>repair_design</code><br><code>repair_timing -hold</code></td><td>Chèn buffer sửa slew/cap violations và hold violations</td></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="3" style="color:var(--accent); font-weight:700; font-size:0.9em;">CTS &amp; Routing</td>
+        </tr>
+        <tr><td>CTS</td><td><code>clock_tree_synthesis -buf_list "clkbuf_4 clkbuf_8 clkbuf_16"</code></td><td>Xây dựng cây clock với các buffer chỉ định</td></tr>
+        <tr><td>Routing</td><td><code>global_route -adjustment 0.3</code><br><code>detailed_route -bottom_routing_layer met1 \<br>&nbsp;&nbsp;-top_routing_layer met5 -droute_end_iter 64</code></td><td>Global route (tìm đường đi) → Detailed route (gán track cụ thể)</td></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="3" style="color:var(--accent); font-weight:700; font-size:0.9em;">Phân tích &amp; Xuất</td>
+        </tr>
+        <tr><td>STA</td><td><code>report_checks -path_delay max</code><br><code>report_checks -path_delay min</code></td><td>Xem setup path tệ nhất (max) và hold path tệ nhất (min)</td></tr>
+        <tr><td>Timing</td><td><code>report_tns</code> / <code>report_wns</code><br><code>report_clock_skew</code></td><td>Tổng slack âm, slack âm tệ nhất, skew cây clock</td></tr>
+        <tr><td>Power</td><td><code>report_power</code></td><td>Ước lượng công suất tĩnh + động</td></tr>
+        <tr><td>Design</td><td><code>report_design_area</code><br><code>report_cell_usage</code></td><td>Diện tích và số lượng từng loại cell</td></tr>
+        <tr><td>Xuất</td><td><code>write_def counter_final.def</code><br><code>write_verilog counter_final.nl.v</code></td><td>Xuất DEF (layout) và netlist sau khi sửa</td></tr>
+      </table>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Ví dụ: Load design sau OpenLane và kiểm tra</h4>
+      <pre>
+<span class="cmt"># Mở OpenROAD và load kết quả OpenLane để khám phá</span>
+openroad
+
+<span class="cmt"># Đọc thư viện</span>
+read_liberty $PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_lef $PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd__nom.tlef
+read_lef $PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
+
+<span class="cmt"># Đọc design đã hoàn thành từ OpenLane</span>
+read_def runs/RUN_*/results/final/def/counter.def
+read_sdc runs/RUN_*/results/final/sdc/counter.sdc
+
+<span class="cmt"># Kiểm tra timing</span>
+report_checks -path_delay max -format full_clock_expanded
+report_checks -path_delay min -format full_clock_expanded
+report_tns
+report_wns
+report_clock_skew
+
+<span class="cmt"># Kiểm tra design</span>
+report_design_area
+report_power
+report_cell_usage</pre>
+    </div>
+
+    <!-- OPENROAD CAN THIỆP THỦ CÔNG -->
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <h3 style="color:var(--purple);">10. OpenROAD — Can thiệp thủ công</h3>
+      <p style="color:var(--muted); margin-bottom:12px;">Khi OpenLane chạy tự động không đạt yêu cầu, bạn có thể <strong>dừng giữa chừng</strong> và can thiệp bằng OpenROAD trực tiếp. Đây là kỹ năng quan trọng của kỹ sư backend.</p>
+
+      <table>
+        <tr><th style="width:25%">Tình huống</th><th style="width:40%">Cách can thiệp</th><th>Lệnh OpenROAD</th></tr>
+        <tr>
+          <td><strong>Setup violation</strong> trên 1 path cụ thể</td>
+          <td>Tìm path → resize cell trên critical path → chạy lại STA</td>
+          <td><pre style="font-size:0.85em;"><span class="cmt"># Xem path tệ nhất</span>
+report_checks -through [get_nets net_name] -fields {slew cap}
+
+<span class="cmt"># Resize cell lớn hơn (drive mạnh hơn)</span>
+resize -cell_name sky130_fd_sc_hd__buf_8
+
+<span class="cmt"># Kiểm tra lại</span>
+report_checks -path_delay max</pre></td>
+        </tr>
+        <tr>
+          <td><strong>Hold violation</strong> sau CTS</td>
+          <td>Chèn hold buffer thủ công vào path bị violation</td>
+          <td><pre style="font-size:0.85em;"><span class="cmt"># Xem hold paths</span>
+report_checks -path_delay min
+
+<span class="cmt"># Repair hold tự động</span>
+repair_timing -hold -slack_margin 0.2
+
+<span class="cmt"># Legalize lại placement</span>
+detailed_placement</pre></td>
+        </tr>
+        <tr>
+          <td><strong>Congestion</strong> tại 1 vùng</td>
+          <td>Dùng GUI xem heatmap → điều chỉnh density tại vùng đó</td>
+          <td><pre style="font-size:0.85em;"><span class="cmt"># Trong GUI: View → Heatmap → Routing</span>
+
+<span class="cmt"># Tạo placement blockage tại vùng congested</span>
+set_placement_padding -masters sky130_fd_sc_hd__mux2_1 \
+  -left 2 -right 2
+
+<span class="cmt"># Chạy lại placement</span>
+global_placement -density 0.5
+detailed_placement</pre></td>
+        </tr>
+        <tr>
+          <td><strong>Di chuyển cell</strong> trong GUI</td>
+          <td>GUI mode: click chọn cell → kéo đến vị trí mới</td>
+          <td><pre style="font-size:0.85em;"><span class="cmt"># Mở GUI</span>
+openroad -gui
+
+<span class="cmt"># Trong GUI:</span>
+<span class="cmt"># 1. Edit → Find → tìm cell instance</span>
+<span class="cmt"># 2. Click chọn cell, chuột phải → Move</span>
+<span class="cmt"># 3. Đặt vào vị trí mới</span>
+<span class="cmt"># 4. detailed_placement (legalize)</span>
+
+<span class="cmt"># Hoặc bằng Tcl:</span>
+set inst [get_cells _123_]
+set_property $inst ORIGIN {50.0 25.0}</pre></td>
+        </tr>
+        <tr>
+          <td><strong>Thay cell</strong> thủ công</td>
+          <td>Swap 1 cell sang loại khác (VT cao hơn, drive mạnh hơn)</td>
+          <td><pre style="font-size:0.85em;"><span class="cmt"># Xem cell hiện tại</span>
+report_cell_usage
+
+<span class="cmt"># Swap cell cụ thể sang drive mạnh hơn</span>
+swap_cell _098_ sky130_fd_sc_hd__buf_8
+
+<span class="cmt"># Swap tất cả buf_1 → buf_2 (cẩn thận!)</span>
+foreach inst [get_cells -filter "ref_name == sky130_fd_sc_hd__buf_1"] {
+  swap_cell $inst sky130_fd_sc_hd__buf_2
+}</pre></td>
+        </tr>
+        <tr>
+          <td><strong>Xuất kết quả</strong> sau khi sửa</td>
+          <td>Lưu DEF + netlist mới rồi tiếp tục flow OpenLane</td>
+          <td><pre style="font-size:0.85em;"><span class="cmt"># Lưu kết quả đã chỉnh sửa</span>
+write_def counter_fixed.def
+write_verilog counter_fixed.nl.v
+
+<span class="cmt"># Trong config.json OpenLane, dùng DEF này:</span>
+<span class="cmt"># "FP_DEF_TEMPLATE": "dir::counter_fixed.def"</span></pre></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- OPENROAD ĐỌC LOG/REPORT -->
+    <div class="card" style="border-left: 4px solid var(--yellow);">
+      <h3 style="color:var(--yellow);">11. OpenROAD — Đọc Log &amp; Report</h3>
+      <p style="color:var(--muted); margin-bottom:12px;">Sau mỗi lần chạy OpenLane, kết quả nằm trong <code>runs/RUN_*/</code>. Biết đọc đúng file sẽ giúp bạn <strong>nhanh chóng xác định vấn đề</strong> và biết cần sửa ở đâu.</p>
+
+      <h4 style="color:var(--accent); margin:12px 0 8px;">Cấu trúc thư mục kết quả</h4>
+      <pre>
+runs/RUN_2024.01.15_10.30.00/
+├── results/
+│   └── final/
+│       ├── def/counter.def          <span class="cmt"># Layout cuối cùng</span>
+│       ├── gds/counter.gds          <span class="cmt"># File GDSII</span>
+│       ├── nl/counter.nl.v          <span class="cmt"># Netlist cuối cùng</span>
+│       ├── pnl/counter.pnl.v        <span class="cmt"># Powered netlist (có VDD/VSS)</span>
+│       ├── sdc/counter.sdc          <span class="cmt"># SDC constraints</span>
+│       ├── sdf/counter.sdf          <span class="cmt"># Timing delays (SDF)</span>
+│       └── spef/counter.spef        <span class="cmt"># Parasitic extraction</span>
+├── 05-yosys-synthesis/              <span class="cmt"># Log synthesis</span>
+├── 27-openroad-globalplacement/     <span class="cmt"># Log placement</span>
+├── 34-openroad-cts/                 <span class="cmt"># Log CTS</span>
+├── 43-openroad-detailedrouting/     <span class="cmt"># Log routing</span>
+├── 54-openroad-stapostpnr/          <span class="cmt"># ★ STA reports (quan trọng nhất)</span>
+│   ├── nom_tt_025C_1v80/
+│   │   ├── ws.max.rpt               <span class="cmt"># Setup (worst slack)</span>
+│   │   ├── ws.min.rpt               <span class="cmt"># Hold (worst slack)</span>
+│   │   └── sta.log                  <span class="cmt"># Full STA log</span>
+│   ├── nom_ss_100C_1v60/            <span class="cmt"># Slow corner</span>
+│   └── nom_ff_n40C_1v95/            <span class="cmt"># Fast corner</span>
+├── 55-openroad-irdropreport/        <span class="cmt"># IR drop analysis</span>
+├── 62-magic-drc/                    <span class="cmt"># DRC report</span>
+├── 68-netgen-lvs/                   <span class="cmt"># LVS report</span>
+└── metrics.csv                      <span class="cmt"># ★ Tổng hợp tất cả metrics</span></pre>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Cách đọc STA Report (quan trọng nhất)</h4>
+      <pre>
+<span class="cmt"># Xem setup timing (critical path)</span>
+cat runs/*/54-openroad-stapostpnr/nom_tt_025C_1v80/ws.max.rpt</pre>
+      <p style="color:var(--muted); margin:8px 0;">Kết quả mẫu:</p>
+      <pre>
+Startpoint: _109_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint:   _115_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type:  max                      <span class="cmt">← "max" = setup check</span>
+
+  Delay    Time   Description
+---------------------------------------------------------
+   0.00    0.00   clock clk (rise edge)
+   0.29    0.29   clock network delay (propagated)
+            0.29 ^ _109_/CLK (sky130_fd_sc_hd__dfxtp_1)
+   0.32    0.61 v _109_/Q              <span class="cmt">← Flip-flop output (clock-to-Q)</span>
+   0.16    0.77 v _085_/Y              <span class="cmt">← Combinational logic cell</span>
+   0.21    0.98 ^ _090_/Y              <span class="cmt">← Tiếp tục qua logic gates</span>
+   0.10    1.08 v _096_/Y
+   0.00    1.08 v _115_/D              <span class="cmt">← Data arrives at next FF</span>
+            1.08   data arrival time   <span class="cmt">← ① Thời điểm data đến</span>
+
+   10.00   10.00  clock clk (rise edge)
+   0.29   10.29   clock network delay (propagated)
+   -0.25  10.04   clock uncertainty
+   -0.04  10.00   library setup time   <span class="cmt">← Setup requirement</span>
+           10.00  data required time   <span class="cmt">← ② Thời điểm data phải đến</span>
+---------------------------------------------------------
+           10.00  data required time
+           -1.08  data arrival time
+---------------------------------------------------------
+            <strong style="color:#4ade80;">8.92</strong>  slack (MET)            <span class="cmt">← ② - ① = 8.92ns &gt; 0 → OK!</span></pre>
+
+      <table>
+        <tr><th style="width:25%">Đọc gì</th><th style="width:35%">Ý nghĩa</th><th>Hành động nếu lỗi</th></tr>
+        <tr>
+          <td><code>slack (MET)</code></td>
+          <td><span style="color:#4ade80; font-weight:600;">Dương = OK.</span> Càng lớn càng tốt. Giá trị 8.92ns nghĩa là còn dư rất nhiều</td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td><code>slack (VIOLATED)</code></td>
+          <td><span style="color:#ef4444; font-weight:600;">Âm = LỖI TIMING.</span> Ví dụ -0.5ns nghĩa là data đến chậm 0.5ns</td>
+          <td>Giảm clock freq, tối ưu RTL, resize cells</td>
+        </tr>
+        <tr>
+          <td><code>Path Type: max</code></td>
+          <td>Setup check &mdash; data phải đến <em>trước</em> cạnh clock tiếp theo</td>
+          <td>Giảm delay: dùng cell nhanh hơn, pipeline</td>
+        </tr>
+        <tr>
+          <td><code>Path Type: min</code></td>
+          <td>Hold check &mdash; data phải giữ ổn định <em>sau</em> cạnh clock</td>
+          <td>Tăng delay: chèn hold buffer</td>
+        </tr>
+        <tr>
+          <td><code>clock network delay</code></td>
+          <td>Trễ của cây clock từ source đến flip-flop. Cho biết CTS hoạt động thế nào</td>
+          <td>Nếu quá lớn: giảm số tầng buffer hoặc dùng buffer mạnh hơn</td>
+        </tr>
+      </table>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Các lệnh đọc report hữu ích</h4>
+      <pre>
+<span class="cmt"># ★ Tóm tắt nhanh: pass hay fail?</span>
+cat runs/*/metrics.csv | head -1     <span class="cmt"># Header</span>
+cat runs/*/metrics.csv | tail -1     <span class="cmt"># Giá trị</span>
+
+<span class="cmt"># Setup timing (tất cả corners)</span>
+grep -r "slack" runs/*/54-openroad-stapostpnr/*/ws.max.rpt
+
+<span class="cmt"># Hold timing</span>
+grep -r "slack" runs/*/54-openroad-stapostpnr/*/ws.min.rpt
+
+<span class="cmt"># DRC: bao nhiêu lỗi?</span>
+grep -c "violation" runs/*/62-magic-drc/*.rpt
+
+<span class="cmt"># LVS: match hay không?</span>
+tail -5 runs/*/68-netgen-lvs/*.rpt
+
+<span class="cmt"># IR Drop</span>
+cat runs/*/55-openroad-irdropreport/*.rpt
+
+<span class="cmt"># Cell count &amp; area sau synthesis</span>
+grep "Number of cells\|Chip area" runs/*/05-yosys-synthesis/*.stat.rpt
+
+<span class="cmt"># Routing DRC errors (mục tiêu: 0)</span>
+grep "Number of violations" runs/*/43-openroad-detailedrouting/*.log | tail -1</pre>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Bảng tổng hợp: File nào xem khi nào?</h4>
+      <table>
+        <tr><th style="width:25%">Muốn biết</th><th style="width:45%">Xem file</th><th>Giá trị tốt</th></tr>
+        <tr><td>Timing pass chưa?</td><td><code>54-*/ws.max.rpt</code> &amp; <code>ws.min.rpt</code></td><td>Tất cả slack &ge; 0</td></tr>
+        <tr><td>DRC clean chưa?</td><td><code>62-magic-drc/*.rpt</code></td><td>0 violations</td></tr>
+        <tr><td>LVS match chưa?</td><td><code>68-netgen-lvs/*.rpt</code></td><td>"Circuits match uniquely"</td></tr>
+        <tr><td>Diện tích bao nhiêu?</td><td><code>metrics.csv</code> (cột design__die__area)</td><td>Càng nhỏ càng tốt</td></tr>
+        <tr><td>Power bao nhiêu?</td><td><code>metrics.csv</code> (cột total_power)</td><td>Tùy yêu cầu</td></tr>
+        <tr><td>IR drop có ổn?</td><td><code>55-*/irdrop.rpt</code></td><td>&lt; 5% VDD (tức &lt; 90mV cho 1.8V)</td></tr>
+        <tr><td>Routing congestion?</td><td><code>43-*/*.log</code> (cuối file)</td><td>0 DRC violations</td></tr>
+        <tr><td>Antenna violations?</td><td><code>39-*/checkantennas.log</code></td><td>0 violations</td></tr>
+      </table>
+    </div>
+
     <!-- ITERATION WORKFLOW -->
     <div class="card" style="border-left: 4px solid var(--accent); background: linear-gradient(135deg, var(--card) 0%, #1a2744 100%);">
       <h3 style="color:var(--accent);">Workflow lặp lại (Iteration)</h3>
