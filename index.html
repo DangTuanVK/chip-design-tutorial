@@ -916,31 +916,31 @@
 
     <div class="card">
       <div class="flow-diagram">
-        <div class="flow-step"><div class="step-name">RTL Design</div><div class="step-tool">SystemVerilog</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">①</span> RTL Design</div><div class="step-tool">SystemVerilog</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);">RTL Sim</div><div class="step-tool">Icarus Verilog</div></div>
+        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="opacity:0.7; font-size:0.8em;">②</span> RTL Sim</div><div class="step-tool">Icarus Verilog</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">Lint</div><div class="step-tool">Verilator</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">③</span> Lint</div><div class="step-tool">Verilator</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">Synthesis</div><div class="step-tool">Yosys</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">④</span> Synthesis</div><div class="step-tool">Yosys</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);">GL Sim</div><div class="step-tool">Icarus + Cells</div></div>
+        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="opacity:0.7; font-size:0.8em;">⑤</span> GL Sim</div><div class="step-tool">Icarus + Cells</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">Floorplan</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">⑥</span> Floorplan</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">PDN</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">⑦</span> PDN</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">Placement</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">⑧</span> Placement</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">CTS</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">⑨</span> CTS</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">Routing</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">⑩</span> Routing</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);">Post-PnR Sim</div><div class="step-tool">Icarus + SDF</div></div>
+        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="opacity:0.7; font-size:0.8em;">⑪</span> Post-PnR Sim</div><div class="step-tool">Icarus + SDF</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name">Signoff</div><div class="step-tool">Magic + Netgen</div></div>
+        <div class="flow-step"><div class="step-name"><span style="opacity:0.5; font-size:0.8em;">⑫</span> Signoff</div><div class="step-tool">Magic + Netgen</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--green);"><div class="step-name" style="color:var(--green);">GDSII</div><div class="step-tool">78 steps total</div></div>
+        <div class="flow-step" style="border-color:var(--green);"><div class="step-name" style="color:var(--green);"><span style="opacity:0.7; font-size:0.8em;">⑬</span> GDSII</div><div class="step-tool">78 steps total</div></div>
       </div>
     </div>
 
