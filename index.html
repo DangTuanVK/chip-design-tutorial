@@ -2496,6 +2496,371 @@ Fanout     Cap        Slew       Delay      Time   Description
         <tr><td>Max Latency</td><td>0.294 ns</td></tr>
       </table>
     </div>
+
+    <!-- Card 1: STA là gì? — Khái niệm cốt lõi -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">STA là gì? &mdash; Khái niệm cốt lõi</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Static Timing Analysis (STA) phân tích <strong>tất cả</strong> đường dữ liệu (timing path) trong chip mà <strong>không cần chạy mô phỏng</strong>. STA kiểm tra xem dữ liệu có đến đúng thời điểm tại mỗi flip-flop hay không, dựa trên hai ràng buộc cơ bản: <strong>Setup Time</strong> và <strong>Hold Time</strong>.</p>
+
+      <div class="grid-2">
+        <div>
+          <h4 style="color:var(--accent); margin-bottom:8px;">Setup Time (T<sub>setup</sub>)</h4>
+          <p style="color:var(--muted); margin-bottom:8px; font-size:0.9em;">Dữ liệu phải <strong>ổn định TRƯỚC</strong> cạnh clock ít nhất T<sub>setup</sub></p>
+          <div class="timing-path">
+  CLK    ────────┐         ┌─────────
+                 └─────────┘
+
+  DATA   ══════╗           │
+               ║← Tsetup →│
+               ╚══════════════════════
+
+  Nếu data đến MUỘ N hơn deadline:
+  → Setup Violation → Chip latch sai giá trị</div>
+        </div>
+        <div>
+          <h4 style="color:var(--accent); margin-bottom:8px;">Hold Time (T<sub>hold</sub>)</h4>
+          <p style="color:var(--muted); margin-bottom:8px; font-size:0.9em;">Dữ liệu phải <strong>giữ ổn định SAU</strong> cạnh clock ít nhất T<sub>hold</sub></p>
+          <div class="timing-path">
+  CLK    ────────┐         ┌─────────
+                 └─────────┘
+
+  DATA           │          ═══════╗
+                 │← Thold →║      ║
+                 ══════════╝
+
+  Nếu data thay đổi QUÁ SỚM sau clock edge:
+  → Hold Violation → Data bị ghi đè trước khi đọc</div>
+        </div>
+      </div>
+
+      <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">Slack, WNS &amp; TNS</h4>
+      <table>
+        <tr>
+          <th>Metric</th>
+          <th>Định nghĩa</th>
+          <th>Công thức</th>
+          <th>Ví dụ (design này)</th>
+          <th>Đánh giá</th>
+        </tr>
+        <tr>
+          <td><strong>Slack</strong></td>
+          <td>Margin thời gian còn dư trên 1 path</td>
+          <td><code>Data Required Time &minus; Data Arrival Time</code></td>
+          <td style="color:var(--green);">+6.821 ns</td>
+          <td><span class="badge badge-pass">MET</span></td>
+        </tr>
+        <tr>
+          <td><strong>WNS</strong><br><span style="color:var(--muted); font-size:0.8em;">Worst Negative Slack</span></td>
+          <td>Slack tệ nhất trong toàn bộ design</td>
+          <td><code>min(slack của tất cả path)</code></td>
+          <td style="color:var(--green);">0 (không có slack âm)</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td><strong>TNS</strong><br><span style="color:var(--muted); font-size:0.8em;">Total Negative Slack</span></td>
+          <td>Tổng tất cả slack âm</td>
+          <td><code>&sum;(slack &lt; 0)</code></td>
+          <td style="color:var(--green);">0</td>
+          <td><span class="badge badge-pass">PASS</span></td>
+        </tr>
+      </table>
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);">Slack &gt; 0: <span style="color:var(--green);">PASS (MET)</span> &nbsp;|&nbsp; Slack &lt; 0: <span style="color:var(--red);">FAIL (VIOLATED)</span> &mdash; chip không hoạt động đúng ở tần số mục tiêu.</p>
+    </div>
+
+    <!-- Card 2: Bắt buộc PASS — Tapeout Blocker -->
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <h3 style="color:var(--red);">Bắt buộc PASS &mdash; Tapeout Blocker <span class="badge" style="background:rgba(248,113,113,0.15); color:var(--red); border:1px solid rgba(248,113,113,0.3); margin-left:8px;">TAPEOUT BLOCKER</span></h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Những kiểm tra sau <strong>BẮT BUỘC</strong> phải PASS trên <strong>TẤT CẢ PVT corners</strong> trước khi gửi fab. Nếu còn vi phạm, chip sẽ <strong>KHÔNG</strong> hoạt động đúng.</p>
+
+      <table>
+        <tr>
+          <th>Check</th>
+          <th>Mức nghiêm trọng</th>
+          <th>Hậu quả</th>
+          <th>Fix sau fab?</th>
+        </tr>
+        <tr>
+          <td><strong>Setup Violations</strong><br><span style="color:var(--muted); font-size:0.8em;">WNS &lt; 0 (max path)</span></td>
+          <td><span style="color:var(--red);">CRITICAL</span></td>
+          <td>Chip chạy sai ở tần số mục tiêu. Data đến flip-flop muộn &rarr; latch sai giá trị. <em>Có thể chạy đúng nếu giảm tần số.</em></td>
+          <td style="color:var(--red);"><strong>KHÔNG</strong> &mdash; phải respin</td>
+        </tr>
+        <tr style="background:rgba(248,113,113,0.08);">
+          <td><strong>Hold Violations</strong><br><span style="color:var(--muted); font-size:0.8em;">WNS &lt; 0 (min path)</span></td>
+          <td><span style="color:var(--red); font-weight:700;">NGHIÊM TRỌNG NHẤT</span></td>
+          <td>Chip chạy sai ở <strong>MỌI tần số</strong> (kể cả 1 Hz). Race condition &rarr; data bị ghi đè trước khi được đọc.</td>
+          <td style="color:var(--red);"><strong>KHÔNG</strong> &mdash; phải respin</td>
+        </tr>
+      </table>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px; margin-top:16px; font-size:0.88em; line-height:1.7;">
+        <p style="color:var(--red); font-weight:700; margin-bottom:8px;">TẠI SAO HOLD NGHIÊM TRỌNG HƠN SETUP?</p>
+        <p style="color:var(--text); margin-bottom:6px;"><strong style="color:var(--yellow);">Setup violation:</strong> có thể &ldquo;chữa cháy&rdquo; bằng cách giảm clock frequency &rarr; tăng thời gian cho data đến.</p>
+        <p style="color:var(--text); margin-bottom:6px;"><strong style="color:var(--red);">Hold violation:</strong> <strong>KHÔNG THỂ</strong> fix bằng bất kỳ cách nào sau fabrication:</p>
+        <ul style="color:var(--muted); margin-left:20px; margin-bottom:6px;">
+          <li>Hold <strong>KHÔNG phụ thuộc</strong> vào clock period</li>
+          <li>Ngay cả khi chạy ở 1 Hz, hold violation vẫn xảy ra</li>
+          <li>Đây là lý do OpenLane tự động thêm <strong>7 hold buffers</strong> (step 36) để đảm bảo hold timing</li>
+        </ul>
+        <p style="color:var(--accent); font-size:0.9em;">&rarr; Trong quy trình thiết kế, hold phải được fix <strong>triệt để</strong> trước khi tapeout.</p>
+      </div>
+    </div>
+
+    <!-- Card 3: Vi phạm Signal Integrity -->
+    <div class="card" style="border-left: 4px solid var(--yellow);">
+      <h3 style="color:var(--yellow);">Vi phạm Signal Integrity &mdash; Kiểm tra bởi OpenSTA</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Ngoài setup/hold, OpenSTA còn kiểm tra các vi phạm signal integrity. Đây không trực tiếp gây lỗi chức năng, nhưng làm <strong>giảm độ tin cậy</strong> và có thể gây timing failure gián tiếp.</p>
+
+      <table>
+        <tr>
+          <th>Vi phạm</th>
+          <th>Ý nghĩa</th>
+          <th>Hậu quả</th>
+          <th>Cách fix</th>
+        </tr>
+        <tr>
+          <td><strong>Max Slew</strong><br><span style="color:var(--muted); font-size:0.8em;">Transition time</span></td>
+          <td>Tín hiệu chuyển đổi (0&rarr;1 hoặc 1&rarr;0) quá chậm</td>
+          <td>Switching không tin cậy, tăng dòng ngắn mạch, có thể gây metastability</td>
+          <td>Thêm buffer, dùng cell drive lớn hơn</td>
+        </tr>
+        <tr>
+          <td><strong>Max Capacitance</strong><br><span style="color:var(--muted); font-size:0.8em;">Wire/pin load</span></td>
+          <td>Tải capacitance trên wire/pin quá lớn</td>
+          <td>Slew degradation &rarr; tăng delay &rarr; có thể gây setup violation</td>
+          <td>Route lại, thêm buffer</td>
+        </tr>
+        <tr>
+          <td><strong>Max Fanout</strong><br><span style="color:var(--muted); font-size:0.8em;">Số lượng loads</span></td>
+          <td>1 output phải drive quá nhiều inputs</td>
+          <td>Timing degradation, tăng slew</td>
+          <td>Thêm buffer tree (OpenLane tự động: step 31)</td>
+        </tr>
+      </table>
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);">Trong design counter 8-bit này, tất cả 3 kiểm tra đều <span class="badge badge-pass">PASS</span> (0 violations) &mdash; xem bảng Signoff ở Mục 13.</p>
+    </div>
+
+    <!-- Card 4: Phân tích Multi-Corner PVT -->
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <h3 style="color:var(--purple);">Phân tích Multi-Corner PVT</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Chip phải hoạt động đúng trong <strong>mọi điều kiện vận hành</strong>. Biến thiên trong quá trình sản xuất (Process), điện áp (Voltage), và nhiệt độ (Temperature) tạo ra các &ldquo;corner&rdquo; &mdash; trường hợp cực trị phải kiểm tra.</p>
+
+      <div class="grid-3">
+        <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px;">
+          <h4 style="color:var(--purple); margin-bottom:8px;">Process (P)</h4>
+          <table>
+            <tr><td><strong>ss</strong> (slow-slow)</td><td>Transistor chậm, delay lớn nhất</td></tr>
+            <tr><td><strong>tt</strong> (typical)</td><td>Nominal &mdash; giá trị trung bình</td></tr>
+            <tr><td><strong>ff</strong> (fast-fast)</td><td>Transistor nhanh, delay nhỏ nhất</td></tr>
+          </table>
+        </div>
+        <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px;">
+          <h4 style="color:var(--purple); margin-bottom:8px;">Voltage (V)</h4>
+          <table>
+            <tr><td><strong>1v60</strong></td><td>Điện áp thấp &rarr; chậm hơn</td></tr>
+            <tr><td><strong>1v80</strong></td><td>Nominal</td></tr>
+            <tr><td><strong>1v95</strong></td><td>Điện áp cao &rarr; nhanh hơn</td></tr>
+          </table>
+        </div>
+        <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px;">
+          <h4 style="color:var(--purple); margin-bottom:8px;">Temperature (T)</h4>
+          <table>
+            <tr><td><strong>100C</strong></td><td>Nóng &rarr; điện trở tăng, chậm hơn</td></tr>
+            <tr><td><strong>025C</strong></td><td>Nhiệt độ phòng</td></tr>
+            <tr><td><strong>n40C</strong></td><td>Lạnh (&minus;40&deg;C) &rarr; nhanh hơn</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h4 style="color:var(--purple); margin-top:20px; margin-bottom:10px;">Worst-case Corner cho từng loại check</h4>
+      <table>
+        <tr>
+          <th>Check</th>
+          <th>Worst-case Corner</th>
+          <th>Tại sao?</th>
+          <th>Slack trong design này</th>
+        </tr>
+        <tr>
+          <td><strong>Setup</strong><br><span style="color:var(--muted); font-size:0.8em;">max delay path</span></td>
+          <td><code>max_ss_100C_1v60</code></td>
+          <td>Slow process + nóng + low voltage = delay <strong>lớn nhất</strong></td>
+          <td style="color:var(--yellow);">+5.971 ns</td>
+        </tr>
+        <tr>
+          <td><strong>Hold</strong><br><span style="color:var(--muted); font-size:0.8em;">min delay path</span></td>
+          <td><code>min_ff_n40C_1v95</code></td>
+          <td>Fast process + lạnh + high voltage = delay <strong>nhỏ nhất</strong></td>
+          <td style="color:var(--yellow);">+0.131 ns</td>
+        </tr>
+      </table>
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);">Đây là lý do chạy STA trên 9 corners (3 parasitic &times; 3 PVT): để đảm bảo chip hoạt động đúng trong <strong>MỌI</strong> điều kiện vận hành.</p>
+    </div>
+
+    <!-- Card 5: Clock và các vấn đề liên quan -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">Clock &amp; các vấn đề liên quan</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Clock là &ldquo;nhịp tim&rdquo; của chip. Mọi bất thường trong phân phối clock đều ảnh hưởng trực tiếp đến timing.</p>
+
+      <table>
+        <tr>
+          <th>Vấn đề</th>
+          <th>Định nghĩa</th>
+          <th>Ảnh hưởng Timing</th>
+          <th>Giá trị (design này)</th>
+        </tr>
+        <tr>
+          <td><strong>Clock Skew</strong></td>
+          <td>Chênh lệch thời gian clock đến giữa 2 flip-flop</td>
+          <td>Tăng hold risk (nếu launch clock đến trước), giảm setup margin (nếu capture clock đến sớm)</td>
+          <td>3.14 ps <span style="color:var(--green); font-size:0.8em;">(rất nhỏ)</span></td>
+        </tr>
+        <tr>
+          <td><strong>Clock Uncertainty</strong></td>
+          <td>Margin dự phòng cho jitter + skew chưa biết</td>
+          <td>Trừ trực tiếp khỏi data required time &rarr; giảm slack</td>
+          <td>0.25 ns <span style="color:var(--muted); font-size:0.8em;">(xem critical path)</span></td>
+        </tr>
+        <tr>
+          <td><strong>Clock Jitter</strong></td>
+          <td>Biến động ngẫu nhiên của clock edge</td>
+          <td>Làm tăng uncertainty &rarr; giảm timing margin</td>
+          <td><span style="color:var(--muted);">Modeled trong uncertainty</span></td>
+        </tr>
+        <tr>
+          <td><strong>CTS</strong><br><span style="color:var(--muted); font-size:0.8em;">Clock Tree Synthesis</span></td>
+          <td>Xây dựng cây buffer để phân phối clock đều</td>
+          <td>Thêm latency nhưng <strong>giảm skew</strong>. Sau CTS cần re-check hold</td>
+          <td>4 buffers, 2-level tree <span style="color:var(--muted); font-size:0.8em;">(step 34)</span></td>
+        </tr>
+      </table>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:14px; margin-top:14px; font-size:0.88em;">
+        <p style="color:var(--accent); font-weight:600; margin-bottom:6px;">Clock Domain Crossing (CDC)</p>
+        <p style="color:var(--muted);">Design counter này chỉ có <strong>1 clock domain</strong>. Với design nhiều clock, cần xử lý CDC bằng synchronizer (2-FF hoặc handshake protocol). <strong>CDC violations không được STA phát hiện</strong> &mdash; cần dùng tool riêng (VD: Spyglass CDC, Questa CDC).</p>
+      </div>
+    </div>
+
+    <!-- Card 6: Chiến lược Timing Closure -->
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3 style="color:var(--green);">Chiến lược Timing Closure</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Tìm tắt chiến lược xử lý các vấn đề timing thường gặp. Chi tiết config parameters xem ở Mục 16.</p>
+
+      <table>
+        <tr>
+          <th>Vấn đề</th>
+          <th>Nguyên nhân gốc</th>
+          <th>Fix (Config)</th>
+          <th>Fix (RTL)</th>
+          <th>OpenLane Step</th>
+        </tr>
+        <tr>
+          <td style="color:var(--red);"><strong>Setup violation</strong><br><span style="color:var(--muted); font-size:0.8em;">WNS &lt; 0 (max)</span></td>
+          <td>Combinational path quá dài</td>
+          <td><code>SYNTH_STRATEGY: "DELAY 0"</code><br>Tăng <code>CLOCK_PERIOD</code></td>
+          <td>Pipeline: thêm FF giữa các tầng logic</td>
+          <td>Step 54 report</td>
+        </tr>
+        <tr>
+          <td style="color:var(--red);"><strong>Hold violation</strong><br><span style="color:var(--muted); font-size:0.8em;">WNS &lt; 0 (min)</span></td>
+          <td>Path quá ngắn giữa 2 FF</td>
+          <td>Tăng <code>PL_RESIZER_HOLD_SLACK_MARGIN</code><br>Tăng <code>CTS_HOLD_SLACK_MARGIN</code></td>
+          <td>Hiếm khi cần &mdash; tool tự chèn buffer</td>
+          <td>Step 36 auto-fix</td>
+        </tr>
+        <tr>
+          <td style="color:var(--yellow);"><strong>Max Slew</strong></td>
+          <td>Wire dài, cell drive yếu</td>
+          <td>Tăng <code>DIE_AREA</code></td>
+          <td>Giảm fanout trong RTL</td>
+          <td>Step 31 auto-fix</td>
+        </tr>
+        <tr>
+          <td style="color:var(--yellow);"><strong>Max Cap</strong></td>
+          <td>Load quá nhiều trên 1 net</td>
+          <td>Thêm buffer</td>
+          <td>Chia net thành nhiều nhánh</td>
+          <td>Step 31 auto-fix</td>
+        </tr>
+        <tr>
+          <td style="color:var(--yellow);"><strong>Max Fanout</strong></td>
+          <td>1 output &rarr; quá nhiều inputs</td>
+          <td><code>SYNTH_MAX_FANOUT: 6</code></td>
+          <td>Restructure logic tree</td>
+          <td>Step 31 auto-fix</td>
+        </tr>
+        <tr>
+          <td><strong>Clock skew cao</strong></td>
+          <td>Clock tree không cân bằng</td>
+          <td><code>CTS_CLK_MAX_WIRE_LENGTH</code></td>
+          <td>Giảm số FF trên 1 domain</td>
+          <td>Step 34 CTS</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Card 7: Đọc hiểu Timing Report -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">Đọc hiểu Timing Report</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Hãy quay lại xem Critical Path report ở trên và hiểu từng phần. Dưới đây là giải thích chi tiết từng dòng:</p>
+
+      <div class="timing-path"><span style="color:var(--accent);">Startpoint:</span> _41_ (rising edge-triggered flip-flop clocked by clk)
+  <span style="color:var(--green);">↑ Flip-flop bắt đầu — nơi data được launch ra (launch register)</span>
+
+<span style="color:var(--accent);">Endpoint:</span>   count[5] (output port clocked by clk)
+  <span style="color:var(--green);">↑ Điểm kết thúc — data phải đến đây trước deadline</span>
+
+<span style="color:var(--accent);">Path Type:</span>   max
+  <span style="color:var(--green);">↑ "max" = kiểm tra SETUP (đo delay lớn nhất)</span>
+  <span style="color:var(--green);">  "min" = kiểm tra HOLD  (đo delay nhỏ nhất)</span>
+
+<span style="color:var(--yellow);">══════════════ DATA PATH (đường đi của data) ══════════════</span>
+
+Fanout  Cap     Slew    Delay    Time   Description
+---------------------------------------------------------------------------
+                        0.000    0.000  clock clk (rise edge)
+  <span style="color:var(--green);">↑ Clock bắt đầu tại t = 0</span>
+
+  1  0.013  0.063  0.043  0.043  ^ clk (in)
+  <span style="color:var(--green);">↑ Clock vào chip — delay 43 ps qua input pad</span>
+
+  2  0.019  0.041  0.131  0.174  ^ clkbuf_0_clk/X
+  <span style="color:var(--green);">↑ Qua clock buffer tầng 1 — delay 131 ps</span>
+
+  4  0.012  0.035  0.116  0.290  ^ clkbuf_1_0__f_clk/X
+  <span style="color:var(--green);">↑ Qua clock buffer tầng 2 — delay 116 ps</span>
+
+  4  0.017  0.158  0.402  0.692  ^ _41_/Q (dfrtp_1)
+  <span style="color:var(--green);">↑ Output flip-flop (CK→Q delay = 402 ps)</span>
+  <span style="color:var(--green);">  Đây là LAUNCH point — data bắt đầu đi từ đây</span>
+
+  1  0.034  0.170  0.235  0.928  ^ output8/X (buf_2)
+  <span style="color:var(--green);">↑ Qua output buffer — delay 235 ps</span>
+
+                          0.929  ^ count[5] (out)
+  <span style="color:var(--accent); font-weight:700;">↑ DATA ARRIVAL TIME = 0.929 ns</span>
+
+<span style="color:var(--yellow);">══════════════ CLOCK PATH (deadline) ══════════════════════</span>
+
+                         10.000  clock clk (rise edge)
+  <span style="color:var(--green);">↑ Clock period tiếp theo = 10 ns</span>
+
+                         -0.250  clock uncertainty
+  <span style="color:var(--green);">↑ Trừ margin cho jitter/skew = −0.25 ns</span>
+
+                         -2.000  output external delay
+  <span style="color:var(--green);">↑ Output delay constraint từ SDC = −2.0 ns</span>
+
+                          7.750  data required time
+  <span style="color:var(--accent); font-weight:700;">↑ DATA REQUIRED TIME = 7.750 ns</span>
+
+<span style="color:var(--yellow);">══════════════ KẾT QUẢ ════════════════════════════════════</span>
+
+                          6.821  slack (<span style="color:var(--green); font-weight:700;">MET</span>)
+  <span style="color:var(--accent); font-weight:700;">↑ 7.750 − 0.929 = 6.821 ns</span>
+  <span style="color:var(--green);">  POSITIVE = PASS — còn dư 6.82 ns</span>
+  <span style="color:var(--green);">  Có thể tăng frequency lên ~653 MHz (period 1.53 ns)</span></div>
+    </div>
+
   </div>
 
   <!-- 12. Power Analysis -->
@@ -2544,6 +2909,270 @@ Fanout     Cap        Slew       Delay      Time   Description
         </div>
       </div>
     </div>
+
+    <!-- Card 1: Các thành phần công suất -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">Công suất chip &mdash; Các thành phần cơ bản</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Tổng công suất tiêu thụ của chip gồm hai phần chính: <strong>Dynamic Power</strong> (tiêu thụ khi hoạt động) và <strong>Static Power</strong> (tiêu thụ ngay cả khi không chuyển mạch).</p>
+
+      <div class="timing-path"><span style="color:var(--accent); font-weight:700;">P_total = P_dynamic + P_static</span>
+
+<span style="color:var(--yellow);">═══════════════════════════════════════════════════════════</span>
+
+<span style="color:var(--accent);">P_dynamic</span> = P_internal + P_switching
+  │
+  ├── <span style="color:var(--purple);">P_internal</span>  = Dòng ngắn mạch (short-circuit) khi
+  │                PMOS &amp; NMOS cùng dẫn + nạp tụ bên trong cell
+  │                <span style="color:var(--muted);">→ 61.6% trong design này (151.9 uW)</span>
+  │
+  └── <span style="color:var(--purple);">P_switching</span> = Nạp/xả tụ tải (load capacitance)
+                    mỗi khi tín hiệu chuyển 0↔1
+                    <span style="color:var(--muted);">→ 38.4% trong design này (94.6 uW)</span>
+
+<span style="color:var(--accent);">P_static</span>  = P_leakage
+  │
+  └── <span style="color:var(--green);">P_leakage</span>   = Dòng rò qua transistor khi OFF
+                    (subthreshold + gate leakage)
+                    <span style="color:var(--muted);">→ ~0% trong design này (781.1 pW)</span>
+                    <span style="color:var(--muted);">  (Sky130 = 130nm → leakage rất nhỏ)</span></div>
+    </div>
+
+    <!-- Card 2: Dynamic Power chi tiết -->
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <h3 style="color:var(--purple);">Dynamic Power &mdash; Công thức &amp; Yếu tố ảnh hưởng</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Dynamic power chiếm <strong>99.97%</strong> tổng công suất trong design này. Đây là thành phần chính cần tối ưu.</p>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; text-align:center;">
+        <p style="font-size:1.3em; color:var(--accent); font-weight:700; font-family:'JetBrains Mono','Consolas',monospace;">P<sub>dynamic</sub> = &alpha; &middot; C<sub>L</sub> &middot; V<sub>DD</sub>&sup2; &middot; f</p>
+      </div>
+
+      <table>
+        <tr>
+          <th>Ký hiệu</th>
+          <th>Ý nghĩa</th>
+          <th>Ảnh hưởng</th>
+          <th>Cách giảm</th>
+        </tr>
+        <tr>
+          <td><strong>&alpha;</strong><br><span style="color:var(--muted); font-size:0.8em;">Activity Factor</span></td>
+          <td>Tỷ lệ chuyển mạch (0&rarr;1, 1&rarr;0) trên mỗi chu kỳ clock</td>
+          <td>Tuyến tính &mdash; &alpha; &times;2 &rarr; P &times;2</td>
+          <td>Clock gating, giảm toggling không cần thiết</td>
+        </tr>
+        <tr>
+          <td><strong>C<sub>L</sub></strong><br><span style="color:var(--muted); font-size:0.8em;">Load Capacitance</span></td>
+          <td>Tổng tụ tải: wire cap + pin cap + internal cap</td>
+          <td>Tuyến tính &mdash; C &times;2 &rarr; P &times;2</td>
+          <td>Dùng cell nhỏ hơn, routing ngắn hơn</td>
+        </tr>
+        <tr>
+          <td><strong>V<sub>DD</sub></strong><br><span style="color:var(--muted); font-size:0.8em;">Supply Voltage</span></td>
+          <td>Điện áp nguồn (Sky130: 1.8V nominal)</td>
+          <td style="color:var(--red);"><strong>Bình phương</strong> &mdash; V &times;2 &rarr; P &times;4</td>
+          <td>Voltage scaling, multi-VDD domains</td>
+        </tr>
+        <tr>
+          <td><strong>f</strong><br><span style="color:var(--muted); font-size:0.8em;">Clock Frequency</span></td>
+          <td>Tần số hoạt động</td>
+          <td>Tuyến tính &mdash; f &times;2 &rarr; P &times;2</td>
+          <td>DVFS (Dynamic Voltage-Frequency Scaling)</td>
+        </tr>
+      </table>
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);"><strong>Nhận xét:</strong> V<sub>DD</sub> ảnh hưởng <strong>mạnh nhất</strong> (bình phương). Giảm điện áp 10% &rarr; giảm dynamic power ~19%.</p>
+    </div>
+
+    <!-- Card 3: Static/Leakage Power -->
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3 style="color:var(--green);">Static / Leakage Power &mdash; Tại sao quan trọng?</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Trong design Sky130 (130nm) này, leakage chỉ chiếm ~0%. Nhưng ở công nghệ tiên tiến hơn, leakage trở thành vấn đề <strong>nghiêm trọng</strong>.</p>
+
+      <table>
+        <tr>
+          <th>Loại Leakage</th>
+          <th>Nguyên nhân</th>
+          <th>Phụ thuộc</th>
+        </tr>
+        <tr>
+          <td><strong>Subthreshold Leakage</strong><br><span style="color:var(--muted); font-size:0.8em;">I<sub>sub</sub></span></td>
+          <td>Dòng rò qua kênh transistor khi V<sub>GS</sub> &lt; V<sub>th</sub> (transistor &ldquo;OFF&rdquo; nhưng vẫn có dòng nhỏ chạy qua)</td>
+          <td>Tăng theo nhiệt độ, giảm theo V<sub>th</sub></td>
+        </tr>
+        <tr>
+          <td><strong>Gate Leakage</strong><br><span style="color:var(--muted); font-size:0.8em;">I<sub>gate</sub></span></td>
+          <td>Dòng rò qua lớp oxide cổng (tunneling) &mdash; oxide mỏng hơn ở node nhỏ</td>
+          <td>Tăng khi oxide mỏng (node &lt; 65nm)</td>
+        </tr>
+      </table>
+
+      <h4 style="color:var(--green); margin-top:20px; margin-bottom:10px;">Leakage theo công nghệ</h4>
+      <table>
+        <tr>
+          <th>Process Node</th>
+          <th>Tỷ lệ Leakage / Total</th>
+          <th>Mức độ lo ngại</th>
+        </tr>
+        <tr>
+          <td><strong>130nm</strong> (Sky130 &mdash; design này)</td>
+          <td style="color:var(--green);">&lt; 1%</td>
+          <td><span class="badge badge-pass">Không đáng kể</span></td>
+        </tr>
+        <tr>
+          <td>65nm</td>
+          <td style="color:var(--yellow);">10&ndash;20%</td>
+          <td><span class="badge badge-info">Cần lưu ý</span></td>
+        </tr>
+        <tr>
+          <td>28nm</td>
+          <td style="color:var(--yellow);">20&ndash;40%</td>
+          <td><span class="badge" style="background:rgba(251,191,36,0.15); color:var(--yellow); border:1px solid rgba(251,191,36,0.3);">Quan trọng</span></td>
+        </tr>
+        <tr>
+          <td>7nm / 5nm</td>
+          <td style="color:var(--red);">30&ndash;50%+</td>
+          <td><span class="badge" style="background:rgba(248,113,113,0.15); color:var(--red); border:1px solid rgba(248,113,113,0.3);">Critical</span></td>
+        </tr>
+      </table>
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);"><strong>Giải pháp:</strong> Multi-V<sub>th</sub> cells (HVT cho path không critical, LVT cho path critical), Power Gating (tắt nguồn module không dùng).</p>
+    </div>
+
+    <!-- Card 4: Các vấn đề Power cần lưu ý -->
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <h3 style="color:var(--red);">Các vấn đề Power cần lưu ý</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Công suất không chỉ ảnh hưởng đến pin/battery. Power quá cao gây ra hàng loạt vấn đề vật lý nghiêm trọng.</p>
+
+      <table>
+        <tr>
+          <th>Vấn đề</th>
+          <th>Nguyên nhân</th>
+          <th>Hậu quả</th>
+          <th>Kiểm tra bằng</th>
+        </tr>
+        <tr>
+          <td><strong>IR Drop</strong><br><span style="color:var(--muted); font-size:0.8em;">Sụt áp trên PDN</span></td>
+          <td>Dòng lớn chạy qua điện trở wire của Power Distribution Network (VPWR/VGND)</td>
+          <td>V<sub>DD</sub> thực tế tại cell giảm &rarr; delay tăng &rarr; <strong>timing failure</strong>. Nếu sụt áp &gt;10% &rarr; chip có thể không hoạt động</td>
+          <td>OpenROAD IR Drop Analysis (step 55)</td>
+        </tr>
+        <tr>
+          <td><strong>Electromigration (EM)</strong><br><span style="color:var(--muted); font-size:0.8em;">Dịch chuyển nguyên tử kim loại</span></td>
+          <td>Mật độ dòng quá cao trên wire &rarr; nguyên tử kim loại bị &ldquo;kéo đi&rdquo; theo dòng electron</td>
+          <td>Wire bị đứt (open) hoặc chập (short) <strong>sau vài tháng/năm</strong> sử dụng &rarr; chip hỏng dần</td>
+          <td>EM analysis (signoff flow)</td>
+        </tr>
+        <tr>
+          <td><strong>Thermal</strong><br><span style="color:var(--muted); font-size:0.8em;">Nhiệt độ chip</span></td>
+          <td>P = I &times; V &rarr; nhiệt tỏa ra. Power density cao &rarr; hotspot</td>
+          <td>Nhiệt tăng &rarr; leakage tăng &rarr; nhiệt tăng thêm (<strong>thermal runaway</strong>). Tệ nhất: chip cháy</td>
+          <td>Thermal simulation (tool riêng)</td>
+        </tr>
+        <tr>
+          <td><strong>Ground Bounce</strong><br><span style="color:var(--muted); font-size:0.8em;">Nhiễu trên GND</span></td>
+          <td>Nhiều cell chuyển mạch đồng thời &rarr; dòng tức thời (di/dt) lớn trên inductance của bonding wire</td>
+          <td>Điện áp GND dao động &rarr; noise margin giảm &rarr; lỗi logic ngẫu nhiên</td>
+          <td>Decoupling cap, PDN analysis</td>
+        </tr>
+      </table>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:14px; margin-top:14px; font-size:0.88em;">
+        <p style="color:var(--red); font-weight:600; margin-bottom:6px;">POWER BUDGET</p>
+        <p style="color:var(--muted);">Mỗi chip có <strong>power budget</strong> &mdash; giới hạn công suất tối đa dựa trên package thermal resistance và điều kiện tản nhiệt. Vượt quá budget &rarr; chip quá nhiệt &rarr; không đạt reliability. Trong design counter này: <strong>246.6 &mu;W</strong> &mdash; rất nhỏ, không cần lo về thermal.</p>
+      </div>
+    </div>
+
+    <!-- Card 5: Chiến lược tối ưu Power -->
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3 style="color:var(--green);">Chiến lược tối ưu Power</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Các kỹ thuật phổ biến để giảm công suất tiêu thụ, sắp xếp theo mức độ hiệu quả.</p>
+
+      <table>
+        <tr>
+          <th>Kỹ thuật</th>
+          <th>Loại Power giảm</th>
+          <th>Cách hoạt động</th>
+          <th>Hiệu quả</th>
+          <th>Hỗ trợ trong OpenLane?</th>
+        </tr>
+        <tr>
+          <td><strong>Clock Gating</strong></td>
+          <td>Dynamic</td>
+          <td>Tắt clock cho module không hoạt động &rarr; &alpha; = 0 cho toàn bộ logic phía sau</td>
+          <td style="color:var(--green);"><strong>20&ndash;60%</strong> dynamic</td>
+          <td><span class="badge badge-pass">Có</span> &mdash; Yosys tự động infer clock gate từ RTL</td>
+        </tr>
+        <tr>
+          <td><strong>Voltage Scaling</strong></td>
+          <td>Dynamic + Static</td>
+          <td>Giảm V<sub>DD</sub> &rarr; P giảm theo V&sup2;</td>
+          <td style="color:var(--green);"><strong>Rất cao</strong> (bình phương)</td>
+          <td><span style="color:var(--muted);">Không &mdash; cần multi-VDD PDK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Multi-V<sub>th</sub></strong></td>
+          <td>Static (leakage)</td>
+          <td>Dùng HVT cell (high threshold, ít rò) cho path không critical. LVT chỉ cho path critical</td>
+          <td style="color:var(--green);"><strong>30&ndash;50%</strong> leakage</td>
+          <td><span class="badge badge-pass">Có</span> &mdash; <code>SYNTH_STRATEGY</code></td>
+        </tr>
+        <tr>
+          <td><strong>Power Gating</strong></td>
+          <td>Static (leakage)</td>
+          <td>Dùng switch transistor tắt hoàn toàn V<sub>DD</sub> cho module không dùng</td>
+          <td style="color:var(--green);"><strong>~100%</strong> leakage module đó</td>
+          <td><span style="color:var(--muted);">Không &mdash; cần UPF/CPF flow</span></td>
+        </tr>
+        <tr>
+          <td><strong>Operand Isolation</strong></td>
+          <td>Dynamic</td>
+          <td>Gate input của module khi output không được dùng &rarr; ngăn toggling vô ích</td>
+          <td style="color:var(--yellow);">10&ndash;20%</td>
+          <td><span style="color:var(--muted);">Cần code RTL thủ công</span></td>
+        </tr>
+      </table>
+
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);"><strong>Ưu tiên cho người mới:</strong> Viết RTL &ldquo;clock-gating friendly&rdquo; (dùng <code>if (enable)</code> thay vì MUX) &rarr; tool synthesis tự động chèn clock gate &mdash; đây là cách đơn giản nhất và hiệu quả nhất.</p>
+    </div>
+
+    <!-- Card 6: Đọc hiểu Power Report -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">Đọc hiểu Power Report</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Hãy quay lại bảng Power Breakdown ở trên và hiểu ý nghĩa từng nhóm:</p>
+
+      <div class="timing-path"><span style="color:var(--yellow);">══════════════ PHÂN TÍCH THEO NHÓM ═══════════════════════</span>
+
+<span style="color:var(--accent); font-weight:700;">Sequential (65.7 uW — 26.7%)</span>
+  Flip-flop + register: 8 DFF cho counter 8-bit
+  Internal: 50.4 uW │ Switching: 15.3 uW │ Leakage: 91.4 pW
+  <span style="color:var(--green);">→ Internal cao vì FF có CK→Q transition mỗi cycle</span>
+  <span style="color:var(--green);">→ Switching thấp vì output chỉ toggle khi count thay đổi</span>
+
+<span style="color:var(--accent); font-weight:700;">Combinational (110.4 uW — 44.8%)</span>
+  Logic gates + buffers: bộ cộng, MUX, timing repair buffers
+  Internal: 46.0 uW │ Switching: 64.4 uW │ Leakage: 120.0 pW
+  <span style="color:var(--green);">→ Switching cao nhất vì combinational logic toggle liên tục</span>
+  <span style="color:var(--green);">→ Bao gồm 17 timing repair + 7 hold buffers (overhead)</span>
+
+<span style="color:var(--accent); font-weight:700;">Clock Network (70.4 uW — 28.6%)</span>
+  Clock buffers + clock wires: 4 buffers, 2-level tree
+  Internal: 55.5 uW │ Switching: 14.9 uW │ Leakage: 569.7 pW
+  <span style="color:var(--green);">→ Clock toggle MỌI chu kỳ (α = 1.0) → tiêu thụ cao</span>
+  <span style="color:var(--green);">→ Đây là lý do Clock Gating quan trọng: tắt clock = tắt 28.6% power</span>
+
+<span style="color:var(--yellow);">══════════════ PHÂN TÍCH THEO LOẠI ════════════════════════</span>
+
+<span style="color:var(--purple); font-weight:700;">Internal Power: 151.9 uW (61.6%)</span>
+  <span style="color:var(--muted);">Dòng ngắn mạch PMOS↔NMOS + nạp tụ nội bộ cell</span>
+  <span style="color:var(--green);">→ Chiếm đa số vì Sky130 (1.8V) có dòng ngắn mạch đáng kể</span>
+
+<span style="color:var(--purple); font-weight:700;">Switching Power: 94.6 uW (38.4%)</span>
+  <span style="color:var(--muted);">Nạp/xả tụ tải (wire + pin capacitance)</span>
+  <span style="color:var(--green);">→ Tỷ lệ thuận với tần số và activity factor</span>
+
+<span style="color:var(--green); font-weight:700;">Leakage Power: 781.1 pW (~0%)</span>
+  <span style="color:var(--muted);">Dòng rò transistor OFF</span>
+  <span style="color:var(--green);">→ 130nm: leakage không đáng kể (chỉ picoWatt)</span>
+  <span style="color:var(--green);">→ Ở 7nm: con số này sẽ lên tới 30-50% total power</span></div>
+    </div>
+
   </div>
 
   <!-- 13. DRC/LVS Signoff -->
@@ -2579,6 +3208,298 @@ Fanout     Cap        Slew       Delay      Time   Description
         <tr><td>Disconnected Pins</td><td>ODB</td><td>0</td><td><span class="badge badge-pass">PASS</span></td></tr>
       </table>
     </div>
+
+    <!-- Card 1: Signoff là gì? -->
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <h3 style="color:var(--red);">Signoff là gì? &mdash; Cổng cuối trước Tapeout</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Signoff là bước kiểm tra <strong>cuối cùng và bắt buộc</strong> trước khi gửi GDSII cho nhà máy (foundry) để sản xuất. Chip được sản xuất sẽ <strong>không thể sửa</strong> &mdash; một lỗi bị bỏ sót nghĩa là phải respin (thiết kế lại + fab lại), tốn <strong>hàng triệu USD</strong> và <strong>hàng tháng</strong> delay.</p>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
+        <div class="timing-path"><span style="color:var(--accent); font-weight:700;">Quy trình Signoff trong OpenLane (Steps 59–74)</span>
+
+RTL → Synthesis → P&amp;R → <span style="color:var(--red); font-weight:700;">[ SIGNOFF ]</span> → GDSII → Foundry
+
+                            ┌─ DRC (Magic + KLayout)
+                            ├─ LVS (Netgen)
+<span style="color:var(--red);">SIGNOFF</span> bao gồm ─────────────┼─ Antenna Check
+                            ├─ Timing (Setup + Hold)
+                            ├─ Signal Integrity (Slew/Cap/Fanout)
+                            ├─ XOR Check (cross-tool verification)
+                            └─ Connectivity (Disconnected Pins)
+
+<span style="color:var(--red); font-weight:700;">TẤT CẢ phải PASS. Một check FAIL = KHÔNG được tapeout.</span></div>
+      </div>
+
+      <table>
+        <tr>
+          <th>Loại check</th>
+          <th>Kiểm tra gì?</th>
+          <th>Nếu FAIL?</th>
+          <th>Mức độ</th>
+        </tr>
+        <tr>
+          <td><strong>Physical</strong><br><span style="color:var(--muted); font-size:0.8em;">DRC, LVS, Antenna</span></td>
+          <td>Layout có thể sản xuất được không? Layout khớp schematic không?</td>
+          <td>Foundry từ chối / chip hỏng vật lý</td>
+          <td><span class="badge" style="background:rgba(248,113,113,0.15); color:var(--red); border:1px solid rgba(248,113,113,0.3);">BLOCKER</span></td>
+        </tr>
+        <tr>
+          <td><strong>Timing</strong><br><span style="color:var(--muted); font-size:0.8em;">Setup, Hold</span></td>
+          <td>Chip chạy đúng ở tần số mục tiêu trong mọi PVT corner?</td>
+          <td>Chip chạy sai hoặc không chạy được</td>
+          <td><span class="badge" style="background:rgba(248,113,113,0.15); color:var(--red); border:1px solid rgba(248,113,113,0.3);">BLOCKER</span></td>
+        </tr>
+        <tr>
+          <td><strong>Signal Integrity</strong><br><span style="color:var(--muted); font-size:0.8em;">Slew, Cap, Fanout</span></td>
+          <td>Tín hiệu đủ chất lượng? Không quá tải?</td>
+          <td>Hoạt động không ổn định, reliability thấp</td>
+          <td><span class="badge" style="background:rgba(251,191,36,0.15); color:var(--yellow); border:1px solid rgba(251,191,36,0.3);">WARNING</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Card 2: DRC chi tiết -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">DRC &mdash; Design Rule Check</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">DRC kiểm tra layout tuân thủ <strong>design rules</strong> của foundry &mdash; các ràng buộc vật lý đảm bảo chip có thể được sản xuất thành công bằng quy trình lithography.</p>
+
+      <table>
+        <tr>
+          <th>Design Rule</th>
+          <th>Ý nghĩa</th>
+          <th>Tại sao cần?</th>
+          <th>Ví dụ (Sky130)</th>
+        </tr>
+        <tr>
+          <td><strong>Minimum Width</strong></td>
+          <td>Chiều rộng tối thiểu của metal wire / poly</td>
+          <td>Wire quá mỏng &rarr; đứt trong quá trình etch hoặc bị electromigration</td>
+          <td>Metal1: 0.14 &mu;m</td>
+        </tr>
+        <tr>
+          <td><strong>Minimum Spacing</strong></td>
+          <td>Khoảng cách tối thiểu giữa 2 wire cùng layer</td>
+          <td>Quá gần &rarr; short circuit (chập mạch) do lithography không phân giải được</td>
+          <td>Metal1: 0.14 &mu;m</td>
+        </tr>
+        <tr>
+          <td><strong>Minimum Enclosure</strong></td>
+          <td>Via phải nằm trong metal ít nhất một khoảng nhất định</td>
+          <td>Via lệch ra ngoài &rarr; tiếp xúc kém &rarr; điện trở cao hoặc open</td>
+          <td>Via1 enc: 0.055 &mu;m</td>
+        </tr>
+        <tr>
+          <td><strong>Minimum Area</strong></td>
+          <td>Diện tích tối thiểu của 1 polygon metal</td>
+          <td>Metal quá nhỏ &rarr; bị &ldquo;bay&rdquo; (floating) trong quá trình CMP (đánh bóng)</td>
+          <td>Metal1: 0.083 &mu;m&sup2;</td>
+        </tr>
+        <tr>
+          <td><strong>Density Rules</strong></td>
+          <td>Mật độ metal trên mỗi layer phải trong khoảng min&ndash;max</td>
+          <td>Mật độ không đều &rarr; CMP tạo bề mặt không phẳng &rarr; lỗi layer trên</td>
+          <td>Metal fill tự động bởi tool</td>
+        </tr>
+      </table>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:14px; margin-top:14px; font-size:0.88em;">
+        <p style="color:var(--accent); font-weight:600; margin-bottom:6px;">TẠI SAO CHẠY DRC BẰNG 2 TOOL?</p>
+        <p style="color:var(--muted);">OpenLane chạy DRC bằng cả <strong>Magic</strong> và <strong>KLayout</strong>, sau đó dùng <strong>XOR check</strong> so sánh kết quả. Mỗi tool có parser GDSII khác nhau &mdash; nếu kết quả khác nhau, có thể layout bị hỏng trong quá trình export. Hai tool đồng ý = độ tin cậy cao hơn.</p>
+      </div>
+    </div>
+
+    <!-- Card 3: LVS chi tiết -->
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <h3 style="color:var(--purple);">LVS &mdash; Layout vs Schematic</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">LVS so sánh <strong>layout vật lý</strong> (GDSII) với <strong>netlist logic</strong> (gate-level) để đảm bảo chúng <strong>tương đương nhau</strong>. Nếu không khớp &rarr; chip được sản xuất sẽ khác với thiết kế.</p>
+
+      <div class="grid-2">
+        <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px;">
+          <h4 style="color:var(--purple); margin-bottom:8px;">LVS kiểm tra gì?</h4>
+          <table>
+            <tr><td><strong>Device mismatch</strong></td><td>Số transistor / cell trong layout &ne; netlist</td></tr>
+            <tr><td><strong>Net mismatch</strong></td><td>Kết nối wire trong layout &ne; netlist</td></tr>
+            <tr><td><strong>Pin mismatch</strong></td><td>Tên/vị trí pin không khớp</td></tr>
+            <tr><td><strong>Short circuit</strong></td><td>2 net khác nhau bị chập trong layout</td></tr>
+            <tr><td><strong>Open circuit</strong></td><td>Net bị đứt (không kết nối hết)</td></tr>
+          </table>
+        </div>
+        <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px;">
+          <h4 style="color:var(--purple); margin-bottom:8px;">Nguyên nhân LVS fail thường gặp</h4>
+          <table>
+            <tr><td><strong>Missing via</strong></td><td>Thiếu via kết nối giữa 2 metal layer</td></tr>
+            <tr><td><strong>Unconnected pin</strong></td><td>Pin cell không được route đến</td></tr>
+            <tr><td><strong>Extra device</strong></td><td>Fill cell / decap bị tool hiểu nhầm là logic</td></tr>
+            <tr><td><strong>Wrong power</strong></td><td>Cell kết nối sai VPWR/VGND rail</td></tr>
+            <tr><td><strong>Parasitic device</strong></td><td>Layout tạo ra transistor &ldquo;ký sinh&rdquo; ngoài ý muốn</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <p style="margin-top:14px; font-size:0.88em; color:var(--muted);">Trong design này: <strong>0 device / 0 net / 0 pin mismatches</strong> &mdash; layout hoàn toàn khớp netlist. Tool: <strong>Netgen</strong> (open-source LVS engine cho Sky130).</p>
+    </div>
+
+    <!-- Card 4: Antenna Check & các check khác -->
+    <div class="card" style="border-left: 4px solid var(--yellow);">
+      <h3 style="color:var(--yellow);">Antenna Effect &amp; các check bổ sung</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Antenna effect là hiện tượng đặc thù trong quy trình sản xuất chip, không liên quan đến &ldquo;ăng-ten&rdquo; thu sóng.</p>
+
+      <div style="background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
+        <h4 style="color:var(--yellow); margin-bottom:8px;">Antenna Effect là gì?</h4>
+        <div class="timing-path">Trong quá trình fabrication, các layer được xây từ dưới lên:
+
+  <span style="color:var(--muted);">Substrate → Poly → Metal1 → Via1 → Metal2 → ... → Metal5</span>
+
+Khi Metal1 được etch (khắc) mà Metal2 chưa được tạo:
+  → Đoạn wire Metal1 dài trở thành "ăng-ten"
+  → Thu điện tích từ plasma trong buồng etch
+  → Điện tích tích tụ trên wire
+  → Xả qua gate oxide của transistor kết nối
+  → <span style="color:var(--red); font-weight:700;">Phá hủy gate oxide → transistor hỏng vĩnh viễn</span>
+
+<span style="color:var(--accent);">Giải pháp:</span>
+  1. Chèn <span style="color:var(--green);">antenna diode</span> để xả điện tích an toàn
+  2. Route wire qua metal layer cao hơn (giảm chiều dài trên 1 layer)
+  3. OpenLane tự động fix: step 41 (openroad-repairantennas)</div>
+      </div>
+
+      <h4 style="color:var(--yellow); margin-top:16px; margin-bottom:10px;">Các check bổ sung</h4>
+      <table>
+        <tr>
+          <th>Check</th>
+          <th>Ý nghĩa</th>
+          <th>Hậu quả nếu FAIL</th>
+        </tr>
+        <tr>
+          <td><strong>Illegal Overlap</strong></td>
+          <td>2 cell đặt chồng lên nhau trong layout</td>
+          <td>Short circuit, chip không sản xuất được</td>
+        </tr>
+        <tr>
+          <td><strong>XOR Check</strong><br><span style="color:var(--muted); font-size:0.8em;">Magic vs KLayout</span></td>
+          <td>So sánh GDSII output từ 2 tool &mdash; phải giống nhau bit-by-bit</td>
+          <td>Nếu khác &rarr; GDSII có thể bị corrupt, foundry nhận sai dữ liệu</td>
+        </tr>
+        <tr>
+          <td><strong>Disconnected Pins</strong></td>
+          <td>Pin cell không kết nối với wire nào</td>
+          <td>Cell không nhận tín hiệu &rarr; logic sai</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Card 5: Vi phạm thường gặp và cách fix -->
+    <div class="card" style="border-left: 4px solid var(--green);">
+      <h3 style="color:var(--green);">Vi phạm thường gặp &amp; cách xử lý</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">Trong OpenLane, hầu hết các vi phạm được <strong>tự động fix</strong>. Bảng dưới liệt kê các trường hợp cần can thiệp thủ công.</p>
+
+      <table>
+        <tr>
+          <th>Vi phạm</th>
+          <th>Nguyên nhân phổ biến</th>
+          <th>OpenLane tự fix?</th>
+          <th>Cách fix thủ công</th>
+        </tr>
+        <tr>
+          <td><strong>DRC: Spacing</strong></td>
+          <td>Routing quá chật, congestion cao</td>
+          <td><span class="badge badge-pass">Có</span> &mdash; detail routing tự tránh</td>
+          <td>Tăng <code>DIE_AREA</code> hoặc giảm <code>FP_CORE_UTIL</code></td>
+        </tr>
+        <tr>
+          <td><strong>DRC: Density</strong></td>
+          <td>Metal density không đều</td>
+          <td><span class="badge badge-pass">Có</span> &mdash; fill cell tự chèn (step 51)</td>
+          <td>Hiếm khi cần &mdash; kiểm tra <code>RUN_FILL_INSERTION</code></td>
+        </tr>
+        <tr>
+          <td><strong>LVS: Net mismatch</strong></td>
+          <td>Routing bị đứt hoặc sai kết nối</td>
+          <td><span style="color:var(--red);">Không</span></td>
+          <td>Kiểm tra log routing, tăng routing resource (layers)</td>
+        </tr>
+        <tr>
+          <td><strong>Antenna</strong></td>
+          <td>Wire dài trên 1 metal layer</td>
+          <td><span class="badge badge-pass">Có</span> &mdash; chèn diode + reroute (step 41)</td>
+          <td><code>GRT_ANTENNA_ITERS</code> tăng lên nếu vẫn fail</td>
+        </tr>
+        <tr>
+          <td><strong>Overlap</strong></td>
+          <td>Cell placement bị chồng do macro quá lớn</td>
+          <td><span style="color:var(--red);">Không</span></td>
+          <td>Tăng <code>DIE_AREA</code>, kiểm tra macro placement</td>
+        </tr>
+        <tr>
+          <td><strong>Disconnected Pin</strong></td>
+          <td>Router không tìm được đường đi</td>
+          <td><span style="color:var(--red);">Không</span></td>
+          <td>Kiểm tra routing congestion, tăng die area</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Card 6: Quy trình Signoff trong thực tế -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">Signoff trong thực tế &mdash; So sánh Academic vs Industry</h3>
+      <p style="margin-bottom:16px; color:var(--muted);">OpenLane flow là phiên bản đơn giản hóa. Trong industry, signoff phức tạp hơn nhiều.</p>
+
+      <table>
+        <tr>
+          <th>Hạng mục</th>
+          <th>OpenLane (Tutorial này)</th>
+          <th>Industry (Commercial)</th>
+        </tr>
+        <tr>
+          <td><strong>DRC Tool</strong></td>
+          <td>Magic + KLayout (open-source)</td>
+          <td>Calibre (Siemens), IC Validator (Synopsys)</td>
+        </tr>
+        <tr>
+          <td><strong>LVS Tool</strong></td>
+          <td>Netgen</td>
+          <td>Calibre LVS, IC Validator LVS</td>
+        </tr>
+        <tr>
+          <td><strong>STA Tool</strong></td>
+          <td>OpenSTA</td>
+          <td>PrimeTime (Synopsys) &mdash; golden standard</td>
+        </tr>
+        <tr>
+          <td><strong>Power Analysis</strong></td>
+          <td>OpenROAD (estimate)</td>
+          <td>PrimePower, Voltus (Cadence)</td>
+        </tr>
+        <tr>
+          <td><strong>IR Drop</strong></td>
+          <td>OpenROAD (static)</td>
+          <td>RedHawk (Ansys), Voltus &mdash; dynamic IR drop</td>
+        </tr>
+        <tr>
+          <td><strong>EM Analysis</strong></td>
+          <td><span style="color:var(--muted);">Không có</span></td>
+          <td>RedHawk, Voltus EM</td>
+        </tr>
+        <tr>
+          <td><strong>Formal Verification</strong></td>
+          <td><span style="color:var(--muted);">Không có</span></td>
+          <td>Formality (Synopsys), Conformal (Cadence) &mdash; chứng minh netlist tương đương RTL</td>
+        </tr>
+        <tr>
+          <td><strong>CDC/RDC</strong></td>
+          <td><span style="color:var(--muted);">Không có</span></td>
+          <td>Spyglass (Synopsys), Questa CDC (Siemens)</td>
+        </tr>
+        <tr>
+          <td><strong>Số lượng checks</strong></td>
+          <td>~10 checks</td>
+          <td>50&ndash;200+ checks (tùy foundry &amp; node)</td>
+        </tr>
+      </table>
+
+      <p style="margin-top:10px; font-size:0.85em; color:var(--muted);"><strong>Lưu ý:</strong> Foundry (TSMC, Samsung, Intel) cung cấp <strong>signoff runset</strong> &mdash; bộ rule files chỉ tương thích với tool thương mại. Dù OpenLane pass hết, khi dùng PDK thương mại bạn vẫn cần chạy lại signoff bằng tool foundry-certified.</p>
+    </div>
+
   </div>
 
 
