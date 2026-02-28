@@ -916,31 +916,31 @@
 
     <div class="card">
       <div class="flow-diagram">
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">①</span> RTL Design</div><div class="step-tool">SystemVerilog</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">1</span>RTL Design</div><div class="step-tool">SystemVerilog</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="color:var(--purple); font-weight:700; font-size:0.85em;">②</span> RTL Sim</div><div class="step-tool">Icarus Verilog</div></div>
+        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="background:var(--purple); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">2</span>RTL Sim</div><div class="step-tool">Icarus Verilog</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">③</span> Lint</div><div class="step-tool">Verilator</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">3</span>Lint</div><div class="step-tool">Verilator</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">④</span> Synthesis</div><div class="step-tool">Yosys</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">4</span>Synthesis</div><div class="step-tool">Yosys</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="color:var(--purple); font-weight:700; font-size:0.85em;">⑤</span> GL Sim</div><div class="step-tool">Icarus + Cells</div></div>
+        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="background:var(--purple); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">5</span>GL Sim</div><div class="step-tool">Icarus + Cells</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">⑥</span> Floorplan</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">6</span>Floorplan</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">⑦</span> PDN</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">7</span>PDN</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">⑧</span> Placement</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">8</span>Placement</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">⑨</span> CTS</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">9</span>CTS</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">⑩</span> Routing</div><div class="step-tool">OpenROAD</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">10</span>Routing</div><div class="step-tool">OpenROAD</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="color:var(--purple); font-weight:700; font-size:0.85em;">⑪</span> Post-PnR Sim</div><div class="step-tool">Icarus + SDF</div></div>
+        <div class="flow-step" style="border-color:var(--purple);"><div class="step-name" style="color:var(--purple);"><span style="background:var(--purple); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">11</span>Post-PnR Sim</div><div class="step-tool">Icarus + SDF</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><div class="step-name"><span style="color:var(--accent); font-weight:700; font-size:0.85em;">⑫</span> Signoff</div><div class="step-tool">Magic + Netgen</div></div>
+        <div class="flow-step"><div class="step-name"><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">12</span>Signoff</div><div class="step-tool">Magic + Netgen</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step" style="border-color:var(--green);"><div class="step-name" style="color:var(--green);"><span style="color:var(--purple); font-weight:700; font-size:0.85em;">⑬</span> GDSII</div><div class="step-tool">78 steps total</div></div>
+        <div class="flow-step" style="border-color:var(--green);"><div class="step-name" style="color:var(--green);"><span style="background:var(--green); color:#0d1117; font-weight:700; font-size:0.7em; padding:1px 5px; border-radius:3px; margin-right:3px;">13</span>GDSII</div><div class="step-tool">78 steps total</div></div>
       </div>
     </div>
 
