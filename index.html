@@ -952,28 +952,28 @@
         <tr style="background:rgba(56,189,248,0.04);">
           <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">FRONTEND — Thiết kế &amp; kiểm tra logic</td>
         </tr>
-        <tr><td>1</td><td><strong>RTL Design</strong></td><td>SystemVerilog</td><td>Viết mô tả phần cứng ở mức thanh ghi &mdash; &ldquo;bản thiết kế&rdquo; dạng code, mô tả chip sẽ hoạt động như thế nào</td></tr>
-        <tr><td>2</td><td><strong style="color:var(--purple);">RTL Sim</strong></td><td>Icarus Verilog</td><td>Mô phỏng logic zero-delay: kiểm tra code đúng/sai trước khi đi tiếp. Phát hiện ~80% lỗi ở bước này</td></tr>
-        <tr><td>3</td><td><strong>Lint</strong></td><td>Verilator</td><td>Kiểm tra lỗi cú pháp, coding style, cảnh báo tổng hợp &mdash; như &ldquo;spell check&rdquo; cho RTL</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">1</span></td><td><strong>RTL Design</strong></td><td>SystemVerilog</td><td>Viết mô tả phần cứng ở mức thanh ghi &mdash; &ldquo;bản thiết kế&rdquo; dạng code, mô tả chip sẽ hoạt động như thế nào</td></tr>
+        <tr><td><span style="background:var(--purple); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">2</span></td><td><strong style="color:var(--purple);">RTL Sim</strong></td><td>Icarus Verilog</td><td>Mô phỏng logic zero-delay: kiểm tra code đúng/sai trước khi đi tiếp. Phát hiện ~80% lỗi ở bước này</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">3</span></td><td><strong>Lint</strong></td><td>Verilator</td><td>Kiểm tra lỗi cú pháp, coding style, cảnh báo tổng hợp &mdash; như &ldquo;spell check&rdquo; cho RTL</td></tr>
         <tr style="background:rgba(56,189,248,0.04);">
           <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">SYNTHESIS — Ranh giới Frontend ↔ Backend</td>
         </tr>
-        <tr><td>4</td><td><strong>Synthesis</strong></td><td>Yosys</td><td>Chuyển code RTL → netlist cổng logic (NAND, NOR, FF) sử dụng standard cells từ thư viện Sky130</td></tr>
-        <tr><td>5</td><td><strong style="color:var(--purple);">GL Sim</strong></td><td>Icarus + Cells</td><td>Mô phỏng lại bằng netlist cổng logic thật &mdash; kiểm tra synthesis không làm sai chức năng</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">4</span></td><td><strong>Synthesis</strong></td><td>Yosys</td><td>Chuyển code RTL → netlist cổng logic (NAND, NOR, FF) sử dụng standard cells từ thư viện Sky130</td></tr>
+        <tr><td><span style="background:var(--purple); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">5</span></td><td><strong style="color:var(--purple);">GL Sim</strong></td><td>Icarus + Cells</td><td>Mô phỏng lại bằng netlist cổng logic thật &mdash; kiểm tra synthesis không làm sai chức năng</td></tr>
         <tr style="background:rgba(56,189,248,0.04);">
           <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">BACKEND — Hiện thực vật lý (Physical Design)</td>
         </tr>
-        <tr><td>6</td><td><strong>Floorplan</strong></td><td>OpenROAD</td><td>Xác định kích thước chip, vị trí I/O pins, vùng đặt macro &mdash; giống &ldquo;quy hoạch mặt bằng&rdquo;</td></tr>
-        <tr><td>7</td><td><strong>PDN</strong></td><td>OpenROAD</td><td>Xây dựng lưới nguồn VDD/VSS &mdash; &ldquo;hệ thống điện&rdquo; cấp năng lượng cho toàn bộ chip</td></tr>
-        <tr><td>8</td><td><strong>Placement</strong></td><td>OpenROAD</td><td>Sắp xếp hàng nghìn standard cells vào các hàng (rows) trên chip, tối ưu vị trí để giảm độ dài dây</td></tr>
-        <tr><td>9</td><td><strong>CTS</strong></td><td>OpenROAD</td><td>Tổng hợp cây clock &mdash; phân phối xung nhịp đến mọi flip-flop với skew tối thiểu</td></tr>
-        <tr><td>10</td><td><strong>Routing</strong></td><td>OpenROAD</td><td>Đi dây kim loại kết nối các cells, sử dụng 5 lớp metal (met1&ndash;met5) của Sky130</td></tr>
-        <tr><td>11</td><td><strong style="color:var(--purple);">Post-PnR Sim</strong></td><td>Icarus + SDF</td><td>Mô phỏng với trễ thực tế (back-annotation từ file SDF) &mdash; kiểm tra timing violations trước signoff</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">6</span></td><td><strong>Floorplan</strong></td><td>OpenROAD</td><td>Xác định kích thước chip, vị trí I/O pins, vùng đặt macro &mdash; giống &ldquo;quy hoạch mặt bằng&rdquo;</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">7</span></td><td><strong>PDN</strong></td><td>OpenROAD</td><td>Xây dựng lưới nguồn VDD/VSS &mdash; &ldquo;hệ thống điện&rdquo; cấp năng lượng cho toàn bộ chip</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">8</span></td><td><strong>Placement</strong></td><td>OpenROAD</td><td>Sắp xếp hàng nghìn standard cells vào các hàng (rows) trên chip, tối ưu vị trí để giảm độ dài dây</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">9</span></td><td><strong>CTS</strong></td><td>OpenROAD</td><td>Tổng hợp cây clock &mdash; phân phối xung nhịp đến mọi flip-flop với skew tối thiểu</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">10</span></td><td><strong>Routing</strong></td><td>OpenROAD</td><td>Đi dây kim loại kết nối các cells, sử dụng 5 lớp metal (met1&ndash;met5) của Sky130</td></tr>
+        <tr><td><span style="background:var(--purple); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">11</span></td><td><strong style="color:var(--purple);">Post-PnR Sim</strong></td><td>Icarus + SDF</td><td>Mô phỏng với trễ thực tế (back-annotation từ file SDF) &mdash; kiểm tra timing violations trước signoff</td></tr>
         <tr style="background:rgba(56,189,248,0.04);">
           <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">SIGNOFF &amp; TAPEOUT</td>
         </tr>
-        <tr><td>12</td><td><strong>Signoff</strong></td><td>Magic + Netgen</td><td>Kiểm tra cuối cùng: DRC (quy tắc sản xuất), LVS (layout khớp netlist), antenna check</td></tr>
-        <tr><td>13</td><td><strong style="color:var(--green);">GDSII</strong></td><td>KLayout</td><td>Xuất file layout cuối cùng &mdash; gửi cho foundry để sản xuất wafer silicon</td></tr>
+        <tr><td><span style="background:var(--accent); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">12</span></td><td><strong>Signoff</strong></td><td>Magic + Netgen</td><td>Kiểm tra cuối cùng: DRC (quy tắc sản xuất), LVS (layout khớp netlist), antenna check</td></tr>
+        <tr><td><span style="background:var(--green); color:#0d1117; font-weight:700; font-size:0.8em; padding:1px 6px; border-radius:3px;">13</span></td><td><strong style="color:var(--green);">GDSII</strong></td><td>KLayout</td><td>Xuất file layout cuối cùng &mdash; gửi cho foundry để sản xuất wafer silicon</td></tr>
       </table>
       <p style="color:var(--muted); font-size:0.9em; margin-top:10px;"><span style="color:var(--purple); font-weight:600;">Mục tím</span> = các bước mô phỏng/kiểm thử xen kẽ trong quy trình. Trong thực tế, kỹ sư thường quay lại bước trước nếu phát hiện lỗi &mdash; đây là quy trình <strong>lặp (iterative)</strong>, không phải một chiều.</p>
     </div>
