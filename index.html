@@ -5742,32 +5742,143 @@ write_verilog counter_fixed.nl.v
       <p style="color:var(--muted); margin-bottom:12px;">Sau mỗi lần chạy OpenLane, kết quả nằm trong <code>runs/RUN_*/</code>. Biết đọc đúng file sẽ giúp bạn <strong>nhanh chóng xác định vấn đề</strong> và biết cần sửa ở đâu.</p>
 
       <h4 style="color:var(--accent); margin:12px 0 8px;">Cấu trúc thư mục kết quả</h4>
-      <pre>
-runs/RUN_2024.01.15_10.30.00/
-├── results/
-│   └── final/
-│       ├── def/counter.def          <span class="cmt"># Layout cuối cùng</span>
-│       ├── gds/counter.gds          <span class="cmt"># File GDSII</span>
-│       ├── nl/counter.nl.v          <span class="cmt"># Netlist cuối cùng</span>
-│       ├── pnl/counter.pnl.v        <span class="cmt"># Powered netlist (có VDD/VSS)</span>
-│       ├── sdc/counter.sdc          <span class="cmt"># SDC constraints</span>
-│       ├── sdf/counter.sdf          <span class="cmt"># Timing delays (SDF)</span>
-│       └── spef/counter.spef        <span class="cmt"># Parasitic extraction</span>
-├── 05-yosys-synthesis/              <span class="cmt"># Log synthesis</span>
-├── 27-openroad-globalplacement/     <span class="cmt"># Log placement</span>
-├── 34-openroad-cts/                 <span class="cmt"># Log CTS</span>
-├── 43-openroad-detailedrouting/     <span class="cmt"># Log routing</span>
-├── 54-openroad-stapostpnr/          <span class="cmt"># ★ STA reports (quan trọng nhất)</span>
-│   ├── nom_tt_025C_1v80/
-│   │   ├── ws.max.rpt               <span class="cmt"># Setup (worst slack)</span>
-│   │   ├── ws.min.rpt               <span class="cmt"># Hold (worst slack)</span>
-│   │   └── sta.log                  <span class="cmt"># Full STA log</span>
-│   ├── nom_ss_100C_1v60/            <span class="cmt"># Slow corner</span>
-│   └── nom_ff_n40C_1v95/            <span class="cmt"># Fast corner</span>
-├── 55-openroad-irdropreport/        <span class="cmt"># IR drop analysis</span>
-├── 62-magic-drc/                    <span class="cmt"># DRC report</span>
-├── 68-netgen-lvs/                   <span class="cmt"># LVS report</span>
-└── metrics.csv                      <span class="cmt"># ★ Tổng hợp tất cả metrics</span></pre>
+      <div style="background:#0d1117; padding:16px; border-radius:8px; border:1px solid var(--border); overflow-x:auto;">
+        <svg viewBox="0 0 820 680" style="width:100%;max-width:820px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+          <!-- Styles -->
+          <style>
+            .ft { font-family: monospace; font-size: 12px; }
+            .fd { fill: #38bdf8; font-weight: 700; }
+            .ff { fill: #4ade80; }
+            .fc { fill: #64748b; font-size: 11px; }
+            .fs { fill: #f59e0b; font-weight: 700; }
+            .fl { stroke: #475569; stroke-width: 1.2; fill: none; }
+          </style>
+
+          <!-- Root -->
+          <text x="10" y="18" class="ft fd" font-size="13">runs/RUN_2024.01.15_10.30.00/</text>
+
+          <!-- results/ branch -->
+          <line x1="18" y1="26" x2="18" y2="42" class="fl"/><line x1="18" y1="42" x2="30" y2="42" class="fl"/>
+          <text x="34" y="46" class="ft fd">results/</text>
+
+          <!-- final/ -->
+          <line x1="50" y1="54" x2="50" y2="70" class="fl"/><line x1="50" y1="70" x2="62" y2="70" class="fl"/>
+          <text x="66" y="74" class="ft fd">final/</text>
+
+          <!-- final files -->
+          <line x1="82" y1="82" x2="82" y2="248" class="fl"/>
+          <!-- def -->
+          <line x1="82" y1="98" x2="94" y2="98" class="fl"/>
+          <text x="98" y="102" class="ft ff">def/counter.def</text>
+          <text x="430" y="102" class="ft fc">Layout cuoi cung</text>
+          <!-- gds -->
+          <line x1="82" y1="122" x2="94" y2="122" class="fl"/>
+          <text x="98" y="126" class="ft ff">gds/counter.gds</text>
+          <text x="430" y="126" class="ft fc">File GDSII</text>
+          <!-- nl -->
+          <line x1="82" y1="146" x2="94" y2="146" class="fl"/>
+          <text x="98" y="150" class="ft ff">nl/counter.nl.v</text>
+          <text x="430" y="150" class="ft fc">Netlist cuoi cung</text>
+          <!-- pnl -->
+          <line x1="82" y1="170" x2="94" y2="170" class="fl"/>
+          <text x="98" y="174" class="ft ff">pnl/counter.pnl.v</text>
+          <text x="430" y="174" class="ft fc">Powered netlist (co VDD/VSS)</text>
+          <!-- sdc -->
+          <line x1="82" y1="194" x2="94" y2="194" class="fl"/>
+          <text x="98" y="198" class="ft ff">sdc/counter.sdc</text>
+          <text x="430" y="198" class="ft fc">SDC constraints</text>
+          <!-- sdf -->
+          <line x1="82" y1="218" x2="94" y2="218" class="fl"/>
+          <text x="98" y="222" class="ft ff">sdf/counter.sdf</text>
+          <text x="430" y="222" class="ft fc">Timing delays (SDF)</text>
+          <!-- spef -->
+          <line x1="82" y1="248" x2="94" y2="248" class="fl"/>
+          <text x="98" y="252" class="ft ff">spef/counter.spef</text>
+          <text x="430" y="252" class="ft fc">Parasitic extraction</text>
+
+          <!-- Main trunk continues from root -->
+          <line x1="18" y1="26" x2="18" y2="660" class="fl"/>
+
+          <!-- 05-yosys-synthesis -->
+          <line x1="18" y1="290" x2="30" y2="290" class="fl"/>
+          <text x="34" y="294" class="ft fd">05-yosys-synthesis/</text>
+          <text x="430" y="294" class="ft fc">Log synthesis</text>
+
+          <!-- 27-openroad-globalplacement -->
+          <line x1="18" y1="318" x2="30" y2="318" class="fl"/>
+          <text x="34" y="322" class="ft fd">27-openroad-globalplacement/</text>
+          <text x="430" y="322" class="ft fc">Log placement</text>
+
+          <!-- 34-openroad-cts -->
+          <line x1="18" y1="346" x2="30" y2="346" class="fl"/>
+          <text x="34" y="350" class="ft fd">34-openroad-cts/</text>
+          <text x="430" y="350" class="ft fc">Log CTS</text>
+
+          <!-- 43-openroad-detailedrouting -->
+          <line x1="18" y1="374" x2="30" y2="374" class="fl"/>
+          <text x="34" y="378" class="ft fd">43-openroad-detailedrouting/</text>
+          <text x="430" y="378" class="ft fc">Log routing</text>
+
+          <!-- 54-openroad-stapostpnr (highlighted) -->
+          <rect x="28" y="396" width="780" height="108" rx="6" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+          <line x1="18" y1="410" x2="30" y2="410" class="fl"/>
+          <text x="34" y="414" class="ft fs">54-openroad-stapostpnr/</text>
+          <text x="430" y="414" class="ft" style="fill:#f59e0b; font-size:11px;">&#9733; STA reports (quan trong nhat)</text>
+
+          <!-- nom_tt -->
+          <line x1="50" y1="418" x2="50" y2="490" class="fl"/>
+          <line x1="50" y1="438" x2="62" y2="438" class="fl"/>
+          <text x="66" y="442" class="ft fd">nom_tt_025C_1v80/</text>
+
+          <!-- tt sub-files -->
+          <line x1="270" y1="446" x2="270" y2="490" class="fl"/>
+          <line x1="270" y1="462" x2="282" y2="462" class="fl"/>
+          <text x="286" y="466" class="ft ff">ws.max.rpt</text>
+          <text x="430" y="466" class="ft fc">Setup (worst slack)</text>
+          <line x1="270" y1="478" x2="282" y2="478" class="fl"/>
+          <text x="286" y="482" class="ft ff">ws.min.rpt</text>
+          <text x="430" y="482" class="ft fc">Hold (worst slack)</text>
+          <line x1="270" y1="490" x2="282" y2="490" class="fl"/>
+          <text x="286" y="494" class="ft ff">sta.log</text>
+          <text x="430" y="494" class="ft fc">Full STA log</text>
+
+          <!-- nom_ss -->
+          <line x1="50" y1="466" x2="62" y2="466" class="fl"/>
+          <!-- hide behind tt block, show below -->
+          <!-- nom_ss shown after tt block ends -->
+          <line x1="50" y1="510" x2="62" y2="510" class="fl"/>
+          <text x="66" y="514" class="ft fd" style="fill:#94a3b8;">nom_ss_100C_1v60/</text>
+          <text x="430" y="514" class="ft fc">Slow corner</text>
+
+          <!-- nom_ff -->
+          <line x1="50" y1="534" x2="62" y2="534" class="fl"/>
+          <text x="66" y="538" class="ft fd" style="fill:#94a3b8;">nom_ff_n40C_1v95/</text>
+          <text x="430" y="538" class="ft fc">Fast corner</text>
+
+          <!-- Fix trunk for sta sub-tree -->
+          <line x1="50" y1="418" x2="50" y2="534" class="fl"/>
+
+          <!-- 55-openroad-irdropreport -->
+          <line x1="18" y1="566" x2="30" y2="566" class="fl"/>
+          <text x="34" y="570" class="ft fd">55-openroad-irdropreport/</text>
+          <text x="430" y="570" class="ft fc">IR drop analysis</text>
+
+          <!-- 62-magic-drc -->
+          <line x1="18" y1="594" x2="30" y2="594" class="fl"/>
+          <text x="34" y="598" class="ft fd">62-magic-drc/</text>
+          <text x="430" y="598" class="ft fc">DRC report</text>
+
+          <!-- 68-netgen-lvs -->
+          <line x1="18" y1="622" x2="30" y2="622" class="fl"/>
+          <text x="34" y="626" class="ft fd">68-netgen-lvs/</text>
+          <text x="430" y="626" class="ft fc">LVS report</text>
+
+          <!-- metrics.csv (highlighted) -->
+          <line x1="18" y1="656" x2="30" y2="656" class="fl"/>
+          <text x="34" y="660" class="ft fs">metrics.csv</text>
+          <text x="430" y="660" class="ft" style="fill:#f59e0b; font-size:11px;">&#9733; Tong hop tat ca metrics</text>
+        </svg>
+      </div>
 
       <h4 style="color:var(--accent); margin:16px 0 8px;">Cách đọc STA Report (quan trọng nhất)</h4>
       <pre>
