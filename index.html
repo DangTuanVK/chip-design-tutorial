@@ -900,6 +900,20 @@
   <!-- 2. Design Flow -->
   <div class="section">
     <h2 id="sec-2"><span class="num">2</span> Tổng quan quy trình thiết kế</h2>
+
+    <!-- Lưu ý về process node -->
+    <div class="card" style="border-left: 4px solid var(--yellow);">
+      <h3 style="color:var(--yellow);">Lưu ý về công nghệ chế tạo</h3>
+      <p style="color:var(--muted); margin-bottom:10px;">Toàn bộ quy trình trong tài liệu này sử dụng <strong>công cụ mã nguồn mở</strong> (OpenLane, Yosys, OpenROAD, Magic...). Các công cụ này hoạt động tốt với các <strong>PDK mã nguồn mở</strong> hiện có:</p>
+      <table>
+        <tr><th style="width:25%">PDK</th><th style="width:15%">Process</th><th style="width:25%">Nhà sản xuất</th><th>Ghi chú</th></tr>
+        <tr><td><strong>Sky130</strong></td><td>130 nm</td><td>SkyWater / Google</td><td>Phổ biến nhất, dùng trong tài liệu này</td></tr>
+        <tr><td><strong>GF180MCU</strong></td><td>180 nm</td><td>GlobalFoundries</td><td>PDK mở thứ hai, hỗ trợ tốt MCU/analog</td></tr>
+        <tr><td><strong>IHP SG13G2</strong></td><td>130 nm SiGe</td><td>IHP (Đức)</td><td>BiCMOS, phù hợp RF &amp; mmWave</td></tr>
+      </table>
+      <p style="color:var(--muted); font-size:0.9em; margin-top:10px;"><strong>Với các node tiên tiến</strong> (28nm, 7nm, 5nm, 3nm...) dùng trong chip thương mại (Apple, Qualcomm, NVIDIA), cần <em>PDK thương mại</em> từ TSMC, Samsung, Intel và <em>công cụ EDA thương mại</em> (Synopsys, Cadence, Siemens EDA) có giá hàng trăm nghìn đến hàng triệu USD/năm. Tuy nhiên, <strong>quy trình thiết kế (design flow) là giống nhau</strong> — kiến thức bạn học ở 130nm hoàn toàn áp dụng được khi chuyển sang node nhỏ hơn.</p>
+    </div>
+
     <div class="card">
       <div class="flow-diagram">
         <div class="flow-step"><div class="step-name">RTL Design</div><div class="step-tool">SystemVerilog</div></div>
@@ -928,6 +942,40 @@
         <div class="flow-arrow">→</div>
         <div class="flow-step" style="border-color:var(--green);"><div class="step-name" style="color:var(--green);">GDSII</div><div class="step-tool">78 steps total</div></div>
       </div>
+    </div>
+
+    <!-- Diễn giải các khâu -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">Diễn giải từng khâu trong quy trình</h3>
+      <table>
+        <tr><th style="width:5%">#</th><th style="width:18%">Khâu</th><th style="width:17%">Công cụ</th><th>Diễn giải</th></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">FRONTEND — Thiết kế &amp; kiểm tra logic</td>
+        </tr>
+        <tr><td>1</td><td><strong>RTL Design</strong></td><td>SystemVerilog</td><td>Viết mô tả phần cứng ở mức thanh ghi &mdash; &ldquo;bản thiết kế&rdquo; dạng code, mô tả chip sẽ hoạt động như thế nào</td></tr>
+        <tr><td>2</td><td><strong style="color:var(--purple);">RTL Sim</strong></td><td>Icarus Verilog</td><td>Mô phỏng logic zero-delay: kiểm tra code đúng/sai trước khi đi tiếp. Phát hiện ~80% lỗi ở bước này</td></tr>
+        <tr><td>3</td><td><strong>Lint</strong></td><td>Verilator</td><td>Kiểm tra lỗi cú pháp, coding style, cảnh báo tổng hợp &mdash; như &ldquo;spell check&rdquo; cho RTL</td></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">SYNTHESIS — Ranh giới Frontend ↔ Backend</td>
+        </tr>
+        <tr><td>4</td><td><strong>Synthesis</strong></td><td>Yosys</td><td>Chuyển code RTL → netlist cổng logic (NAND, NOR, FF) sử dụng standard cells từ thư viện Sky130</td></tr>
+        <tr><td>5</td><td><strong style="color:var(--purple);">GL Sim</strong></td><td>Icarus + Cells</td><td>Mô phỏng lại bằng netlist cổng logic thật &mdash; kiểm tra synthesis không làm sai chức năng</td></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">BACKEND — Hiện thực vật lý (Physical Design)</td>
+        </tr>
+        <tr><td>6</td><td><strong>Floorplan</strong></td><td>OpenROAD</td><td>Xác định kích thước chip, vị trí I/O pins, vùng đặt macro &mdash; giống &ldquo;quy hoạch mặt bằng&rdquo;</td></tr>
+        <tr><td>7</td><td><strong>PDN</strong></td><td>OpenROAD</td><td>Xây dựng lưới nguồn VDD/VSS &mdash; &ldquo;hệ thống điện&rdquo; cấp năng lượng cho toàn bộ chip</td></tr>
+        <tr><td>8</td><td><strong>Placement</strong></td><td>OpenROAD</td><td>Sắp xếp hàng nghìn standard cells vào các hàng (rows) trên chip, tối ưu vị trí để giảm độ dài dây</td></tr>
+        <tr><td>9</td><td><strong>CTS</strong></td><td>OpenROAD</td><td>Tổng hợp cây clock &mdash; phân phối xung nhịp đến mọi flip-flop với skew tối thiểu</td></tr>
+        <tr><td>10</td><td><strong>Routing</strong></td><td>OpenROAD</td><td>Đi dây kim loại kết nối các cells, sử dụng 5 lớp metal (met1&ndash;met5) của Sky130</td></tr>
+        <tr><td>11</td><td><strong style="color:var(--purple);">Post-PnR Sim</strong></td><td>Icarus + SDF</td><td>Mô phỏng với trễ thực tế (back-annotation từ file SDF) &mdash; kiểm tra timing violations trước signoff</td></tr>
+        <tr style="background:rgba(56,189,248,0.04);">
+          <td colspan="4" style="color:var(--accent); font-weight:700; font-size:0.9em; padding:6px 12px;">SIGNOFF &amp; TAPEOUT</td>
+        </tr>
+        <tr><td>12</td><td><strong>Signoff</strong></td><td>Magic + Netgen</td><td>Kiểm tra cuối cùng: DRC (quy tắc sản xuất), LVS (layout khớp netlist), antenna check</td></tr>
+        <tr><td>13</td><td><strong style="color:var(--green);">GDSII</strong></td><td>KLayout</td><td>Xuất file layout cuối cùng &mdash; gửi cho foundry để sản xuất wafer silicon</td></tr>
+      </table>
+      <p style="color:var(--muted); font-size:0.9em; margin-top:10px;"><span style="color:var(--purple); font-weight:600;">Mục tím</span> = các bước mô phỏng/kiểm thử xen kẽ trong quy trình. Trong thực tế, kỹ sư thường quay lại bước trước nếu phát hiện lỗi &mdash; đây là quy trình <strong>lặp (iterative)</strong>, không phải một chiều.</p>
     </div>
   </div>
 
