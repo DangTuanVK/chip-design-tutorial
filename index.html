@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HƯỚNG DẪN THIẾT KẾ CHIP SỐ - 8-bit Counter</title>
+<title>#01. HƯỚNG DẪN THIẾT KẾ CHIP SỐ - 8-bit Counter</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -353,7 +353,7 @@
 <body>
 
 <div class="header">
-  <h1>HƯỚNG DẪN THIẾT KẾ CHIP SỐ</h1>
+  <h1>#01. HƯỚNG DẪN THIẾT KẾ CHIP SỐ</h1>
   <p>Tài liệu hướng dẫn thiết kế IC số từ RTL đến GDSII | OpenLane 2 + Sky130 PDK (130nm)</p>
   <div style="margin-top:16px; display:inline-flex; align-items:center; gap:14px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.2); border-radius:10px; padding:12px 24px; position:relative;">
     <img src="avatartuan.jpg" alt="TS. Đặng Minh Tuấn" id="author-avatar" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0; cursor:pointer;" onclick="document.getElementById('author-modal').style.display='flex'">
@@ -397,6 +397,138 @@
         <tr><td><strong>Kỹ sư mới</strong><br><span style="color:var(--muted); font-size:0.85em;">Chuyển sang lĩnh vực chip</span></td><td>Có nền tảng lập trình, muốn hiểu quy trình thiết kế chip từ đầu đến cuối</td></tr>
         <tr><td><strong>Người tự học</strong><br><span style="color:var(--muted); font-size:0.85em;">Hobbyist, maker</span></td><td>Quan tâm đến thiết kế chip, sẵn sàng cài đặt Linux/WSL và học các khái niệm mới</td></tr>
       </table>
+    </div>
+
+    <!-- Kiến thức cần chuẩn bị -->
+    <div class="card" style="border-left: 4px solid var(--red);">
+      <h3 style="color:var(--red);">Kiến thức cần chuẩn bị</h3>
+      <p style="color:var(--muted); margin-bottom:12px;">Để tiếp thu tài liệu này hiệu quả nhất, bạn nên có nền tảng ở các mảng kiến thức sau:</p>
+      <table>
+        <tr><th style="width:25%">Mảng kiến thức</th><th style="width:35%">Nội dung cụ thể</th><th>Mức độ</th></tr>
+        <tr>
+          <td><strong>Kỹ thuật số</strong><br><span style="color:var(--muted); font-size:0.85em;">(Digital Logic)</span></td>
+          <td>Cổng logic (AND, OR, NOT, XOR), bảng chân trị, Karnaugh map, flip-flop (D-FF, JK-FF), thanh ghi, bộ đếm, FSM (Moore/Mealy)</td>
+          <td><span class="badge badge-pass">Bắt buộc</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hệ thống số</strong><br><span style="color:var(--muted); font-size:0.85em;">(Number Systems)</span></td>
+          <td>Nhị phân, thập lục phân, chuyển đổi cơ số, số bù 2 (two's complement), phép toán bit (AND, OR, shift)</td>
+          <td><span class="badge badge-pass">Bắt buộc</span></td>
+        </tr>
+        <tr>
+          <td><strong>Lập trình cơ bản</strong></td>
+          <td>Hiểu khái niệm biến, vòng lặp, điều kiện, module/function. Biết dùng terminal/command line (cd, ls, mkdir)</td>
+          <td><span class="badge badge-pass">Bắt buộc</span></td>
+        </tr>
+        <tr>
+          <td><strong>SystemVerilog / Verilog</strong><br><span style="color:var(--muted); font-size:0.85em;">(Xem phần giới thiệu bên dưới)</span></td>
+          <td>Cú pháp module, always_ff/always_comb, wire/logic, assign, testbench cơ bản</td>
+          <td><span style="background:rgba(245,158,11,0.15); color:var(--yellow); padding:2px 8px; border-radius:4px; font-weight:600; font-size:0.85em;">Nên có</span></td>
+        </tr>
+        <tr>
+          <td><strong>Linux cơ bản</strong></td>
+          <td>Cài đặt package (apt), sử dụng terminal, Docker cơ bản (pull, run), sửa file text</td>
+          <td><span style="background:rgba(245,158,11,0.15); color:var(--yellow); padding:2px 8px; border-radius:4px; font-weight:600; font-size:0.85em;">Nên có</span></td>
+        </tr>
+        <tr>
+          <td><strong>Điện tử tương tự</strong><br><span style="color:var(--muted); font-size:0.85em;">(Analog basics)</span></td>
+          <td>Transistor MOSFET (NMOS/PMOS), điện áp ngưỡng (Vt), công suất tiêu thụ, khái niệm ký sinh (R, C)</td>
+          <td><span style="background:rgba(100,116,139,0.2); color:var(--muted); padding:2px 8px; border-radius:4px; font-weight:600; font-size:0.85em;">Biết thêm càng tốt</span></td>
+        </tr>
+      </table>
+      <p style="color:var(--muted); font-size:0.9em; margin-top:12px;"><strong>Lưu ý:</strong> Nếu bạn chưa biết SystemVerilog, đừng lo &mdash; tài liệu giải thích từng dòng code. Phần giới thiệu ngôn ngữ ngay bên dưới sẽ giúp bạn nắm nhanh cú pháp cơ bản.</p>
+    </div>
+
+    <!-- Giới thiệu ngắn gọn SystemVerilog -->
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <h3 style="color:var(--accent);">SystemVerilog &mdash; Ngôn ngữ thiết kế chip hiện đại</h3>
+      <p style="color:var(--muted); margin-bottom:12px;"><strong>SystemVerilog</strong> (IEEE 1800) là ngôn ngữ mô tả phần cứng (HDL) được sử dụng rộng rãi nhất trong ngành bán dẫn hiện nay. Nó kế thừa từ Verilog và bổ sung nhiều tính năng mạnh mẽ cho cả <em>thiết kế</em> lẫn <em>kiểm thử</em>.</p>
+
+      <div class="grid-2">
+        <div>
+          <h4 style="color:var(--accent); margin-bottom:8px;">Tại sao dùng SystemVerilog?</h4>
+          <ul style="color:var(--muted); padding-left:20px; line-height:2;">
+            <li><strong>Chuẩn công nghiệp:</strong> Intel, AMD, NVIDIA, Qualcomm, Samsung đều dùng</li>
+            <li><strong>2-trong-1:</strong> Vừa viết RTL (thiết kế), vừa viết testbench (kiểm thử)</li>
+            <li><strong>Mạnh hơn Verilog:</strong> Thêm always_ff, always_comb, logic, enum, struct, interface</li>
+            <li><strong>Hỗ trợ Verification:</strong> Assertions (SVA), constrained-random, OOP, coverage</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:var(--green); margin-bottom:8px;">SystemVerilog vs Verilog vs VHDL</h4>
+          <table>
+            <tr><th>Tiêu chí</th><th>SystemVerilog</th><th>Verilog</th><th>VHDL</th></tr>
+            <tr><td>Cú pháp</td><td>Giống C/C++</td><td>Giống C</td><td>Giống Ada/Pascal</td></tr>
+            <tr><td>Phổ biến</td><td>Toàn cầu #1</td><td>Vẫn dùng</td><td>Châu Âu, Quốc phòng</td></tr>
+            <tr><td>Verification</td><td>Rất mạnh</td><td>Hạn chế</td><td>Trung bình</td></tr>
+            <tr><td>Học dễ</td><td>Trung bình</td><td>Dễ nhất</td><td>Khó nhất</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Ví dụ nhanh: Counter 8-bit bằng SystemVerilog</h4>
+      <div class="pre-wrapper">
+        <pre>
+<span class="kw">module</span> counter (
+  <span class="kw">input</span>  <span class="kw">logic</span>       clk,      <span class="cmt">// Xung nhịp</span>
+  <span class="kw">input</span>  <span class="kw">logic</span>       reset,    <span class="cmt">// Reset đồng bộ</span>
+  <span class="kw">input</span>  <span class="kw">logic</span>       enable,   <span class="cmt">// Cho phép đếm</span>
+  <span class="kw">output</span> <span class="kw">logic</span> [7:0] count     <span class="cmt">// Giá trị đếm (0-255)</span>
+);
+
+  <span class="cmt">// always_ff = mô tả logic tuần tự (flip-flop)</span>
+  <span class="kw">always_ff</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+    <span class="kw">if</span> (reset)
+      count &lt;= 8'h00;         <span class="cmt">// Reset → đếm về 0</span>
+    <span class="kw">else if</span> (enable)
+      count &lt;= count + 1;     <span class="cmt">// Enable → đếm lên 1</span>
+  <span class="kw">end</span>
+
+<span class="kw">endmodule</span></pre>
+      </div>
+
+      <h4 style="color:var(--accent); margin:16px 0 8px;">Giải thích cú pháp chính</h4>
+      <table>
+        <tr><th style="width:28%">Cú pháp</th><th>Ý nghĩa</th></tr>
+        <tr><td><code>module ... endmodule</code></td><td>Đơn vị thiết kế cơ bản (tương tự <em>class</em> trong OOP). Mỗi module có tên, cổng vào/ra, và logic bên trong</td></tr>
+        <tr><td><code>input / output</code></td><td>Khai báo cổng: tín hiệu đi vào hoặc đi ra khỏi module</td></tr>
+        <tr><td><code>logic</code></td><td>Kiểu dữ liệu chính trong SystemVerilog, thay thế <code>wire</code> và <code>reg</code> của Verilog cũ</td></tr>
+        <tr><td><code>[7:0]</code></td><td>Bus 8-bit: gồm 8 đường tín hiệu, bit 7 (MSB) đến bit 0 (LSB)</td></tr>
+        <tr><td><code>always_ff @(posedge clk)</code></td><td>Khối logic tuần tự: thực thi tại mỗi <strong>cạnh lên</strong> của clock. Tạo ra flip-flop khi synthesis</td></tr>
+        <tr><td><code>&lt;=</code> (non-blocking)</td><td>Phép gán không chặn: tất cả gán trong always_ff xảy ra <em>đồng thời</em> tại cạnh clock</td></tr>
+        <tr><td><code>8'h00</code></td><td>Hằng số: 8 bit, dạng hex, giá trị 00. Cũng có thể viết <code>8'd0</code> (decimal) hay <code>8'b0000_0000</code> (binary)</td></tr>
+      </table>
+
+      <h4 style="color:var(--purple); margin:16px 0 8px;">Tài nguyên học SystemVerilog</h4>
+      <table>
+        <tr><th style="width:35%">Tài nguyên</th><th style="width:15%">Loại</th><th>Ghi chú</th></tr>
+        <tr>
+          <td><a href="https://www.chipverify.com/systemverilog/systemverilog-tutorial" target="_blank" style="color:var(--accent); text-decoration:none;"><strong>ChipVerify &mdash; SV Tutorial</strong></a></td>
+          <td>Web (miễn phí)</td>
+          <td>Tài liệu tra cứu cú pháp phổ biến nhất. Có ví dụ từng mục, quiz, phỏng vấn</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.asic-world.com/systemverilog/tutorial.html" target="_blank" style="color:var(--accent); text-decoration:none;"><strong>ASIC-World &mdash; SV in One Day</strong></a></td>
+          <td>Web (miễn phí)</td>
+          <td>Hướng dẫn nhanh SystemVerilog trong 1 ngày, phù hợp nắm tổng quan</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.doulos.com/knowhow/systemverilog/systemverilog-tutorials/" target="_blank" style="color:var(--accent); text-decoration:none;"><strong>Doulos &mdash; SV Tutorials</strong></a></td>
+          <td>Web (miễn phí)</td>
+          <td>Từ công ty đào tạo EDA hàng đầu. Bài viết chất lượng cao về design &amp; verification</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.coursera.org/learn/systemverilog-tutorials-hardware-design--verification" target="_blank" style="color:var(--accent); text-decoration:none;"><strong>Coursera &mdash; SV Hardware Design</strong></a></td>
+          <td>Khoá học online</td>
+          <td>Khoá miễn phí trên Coursera, có bài tập thực hành, phù hợp người mới hoàn toàn</td>
+        </tr>
+        <tr>
+          <td><a href="https://verificationguide.com/systemverilog/systemverilog-tutorial/" target="_blank" style="color:var(--accent); text-decoration:none;"><strong>Verification Guide</strong></a></td>
+          <td>Web (miễn phí)</td>
+          <td>Chuyên sâu về verification: UVM, assertions, constrained-random</td>
+        </tr>
+      </table>
+      <p style="color:var(--muted); font-size:0.9em; margin-top:8px;"><strong>Gợi ý lộ trình:</strong> Đọc <em>ChipVerify</em> để nắm cú pháp cơ bản (2-3 ngày) → Làm theo tài liệu này → Quay lại học sâu verification khi cần.</p>
     </div>
 
     <div class="card" style="border-left: 4px solid var(--yellow);">
